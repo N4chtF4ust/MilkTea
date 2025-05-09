@@ -28,6 +28,11 @@
 	        this.quantity = quantity;
 	    }
 	    
+	    public void setPrice(double price) {
+	        this.price = price;
+	    }
+	    
+	    
 
 
 	    public int id() {

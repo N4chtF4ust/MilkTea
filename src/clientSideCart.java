@@ -21,6 +21,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+
+
 public class clientSideCart extends JPanel {
     private DefaultListModel<String> cartModel;
     private JList<String> cartList;
@@ -99,13 +104,6 @@ public class clientSideCart extends JPanel {
 
         }
             
-        /*cartModel = new DefaultListModel<>();
-        cartList = new JList<>(cartModel);
-        
-        cartPanel.add(new JScrollPane(cartList), BorderLayout.CENTER);*/
-        // Scrollable Cart Panel
-     /*   JScrollPane scrollPane = new JScrollPane(cartPanelCenter);
-        cartPanelCenter.add(scrollPane, BorderLayout.CENTER);*/
 
 
         totalLabel = new JLabel("Total: PHP 0");
@@ -502,93 +500,332 @@ public class clientSideCart extends JPanel {
         return panel;
     }
     
-    private  JPanel cartItemsPanel(ClientOrders clientOrder) {
-        JPanel itemPanelWrapper = new JPanel();
+    private JPanel cartItemsPanel(final ClientOrders clientOrder) {
+        // Pre-define colors and dimensions to avoid repeated creation
+        final Color TRANSPARENT = new Color(0, 0, 0, 0);
+        final Color BLUE_COLOR = Color.decode("#123458");
+        final Dimension PANEL_SIZE = new Dimension(500, 100);
+        final Font BOLD_FONT = new Font("Arial", Font.BOLD, 15);
+        
+        // Create the main wrapper panel that will be returned and shown immediately
+        final JPanel itemPanelWrapper = new JPanel(new BorderLayout());
+        itemPanelWrapper.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+        itemPanelWrapper.setMinimumSize(PANEL_SIZE);
+        itemPanelWrapper.setMaximumSize(PANEL_SIZE);
+        
+     // Create a loading panel to show while content is loading
+        final JPanel loadingPanel = new JPanel(new GridBagLayout());
+        loadingPanel.setPreferredSize(PANEL_SIZE);
+
+        // Create a progress bar for the loading animation
+        final JProgressBar mainLoadingBar = new JProgressBar();
+        mainLoadingBar.setIndeterminate(true);
+        mainLoadingBar.setPreferredSize(new Dimension(200, 20));
+        mainLoadingBar.setForeground(BLUE_COLOR);
+
+        // Create a label for the loading text
+        final JLabel loadingLabel = new JLabel("Loading item...");
+        loadingLabel.setForeground(BLUE_COLOR);
+        loadingLabel.setFont(BOLD_FONT);
+
+        // Add loading components to the loading panel
+        GridBagConstraints loadingGbc = new GridBagConstraints();
+        loadingGbc.gridx = 0;
+        loadingGbc.anchor = GridBagConstraints.CENTER;
+        loadingGbc.insets = new Insets(10, 0, 10, 0); // Add spacing between components
+
+        // Add label
+        loadingGbc.gridy = 0;
+        loadingPanel.add(loadingLabel, loadingGbc);
+
+        // Add progress bar
+        loadingGbc.gridy = 1;
+        loadingPanel.add(mainLoadingBar, loadingGbc);
+
+        // Ensure loading panel is centered inside its container
         itemPanelWrapper.setLayout(new BorderLayout());
-        itemPanelWrapper.setBorder(BorderFactory.createLineBorder(Color.BLACK,1));
-        itemPanelWrapper.setMinimumSize(new Dimension(500, 100));
-        itemPanelWrapper.setMaximumSize(new Dimension(500, 100));
-        
-        JPanel itemPanel = new JPanel();
-        itemPanel.setLayout(new BorderLayout());
+        itemPanelWrapper.add(loadingPanel);
 
-   
-        JPanel itemPanelNorth = new JPanel(new FlowLayout(FlowLayout.LEFT,15,5));
- 
-        itemPanelNorth.setOpaque(false);
-        itemPanel.add(itemPanelNorth,BorderLayout.NORTH);
         
-
-        itemPanelNorth.add(new JLabel(clientOrder.productName));
- 
-        itemPanelNorth.add(new JLabel(String.format("PHP %.2f",clientOrder.price)));
+        // Create the actual content panel that will be populated asynchronously
+        final JPanel contentPanel = new JPanel(new BorderLayout());
+        contentPanel.setVisible(false); // Initially hidden while loading
         
-        JButton deductButton = new JButton("-");
-        deductButton.setFont(new Font("Arial", Font.BOLD, 15));
-        deductButton.setBackground(Color.white);
-        deductButton.setForeground(Color.decode("#123458"));
-        
-        JLabel quatity = new JLabel("1");
-        quatity.setForeground(Color.decode("#123458"));
-        
-        JButton increaseButton = new JButton("+");
-        increaseButton.setFont(new Font("Arial", Font.BOLD, 15));
-        increaseButton.setForeground(Color.decode("#123458"));
-        increaseButton.setBackground(Color.white);
-        
-        JPanel itemPanelCenter = new JPanel(new FlowLayout(FlowLayout.LEFT,15,5));
-     
-        
-        itemPanelCenter.add(deductButton);
-        itemPanelCenter.add(quatity);
-        itemPanelCenter.add(increaseButton);
-        itemPanel.add(itemPanelCenter,BorderLayout.CENTER);
-        
-  
-
-        JButton deleteButton = new JButton("");
-        deleteButton.setBackground(Color.white);
-        JSVGCanvas deleteIcon = new JSVGCanvas();
-        
-        
-        File svgFile = new File("resources/icons/trash3-fill.svg");
-        deleteIcon.setURI(svgFile.toURI().toString());
-        deleteIcon.setSize(20,20);
-        deleteIcon.setOpaque(false);
-        deleteIcon.setBackground(new Color(0, 0, 0, 0));
-
-        JPanel deleteIconPanel = new JPanel(new BorderLayout());
-        deleteIconPanel.setSize(20,20);
-        deleteIconPanel.setOpaque(false);
-        deleteIconPanel.setBackground(new Color(0, 0, 0, 0)); // Set transparent background
-
-        deleteIconPanel.add(deleteIcon, BorderLayout.CENTER);
-        deleteButton.add(deleteIconPanel);
-        itemPanelCenter.add(deleteButton);
-        
- 
-        deleteIcon.addMouseListener(new MouseAdapter() {
+        // Build all components in a background thread
+        SwingWorker<JPanel, Void> panelBuilder = new SwingWorker<JPanel, Void>() {
             @Override
-            public void mouseClicked(MouseEvent evt) {
-                deleteButton.doClick(); // Simulate button click when panel is clicked
-            }
-        });
+            protected JPanel doInBackground() throws Exception {
+                // Simulate loading time (remove in production)
+                Thread.sleep(200);
+                
+                // Create the final content panel
+                final JPanel itemPanel = new JPanel(new BorderLayout());
+                
+                // === NORTH PANEL ===
+                final JPanel itemPanelNorth = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 5));
+                itemPanelNorth.setOpaque(false);
+                
+                // Format price string only once
+                final String formattedPrice = String.format("PHP %.2f", clientOrder.price);
+                
+                // Add components without creating unnecessary variables
+                itemPanelNorth.add(new JLabel(clientOrder.productName));
+                itemPanelNorth.add(new JLabel(formattedPrice));
+                itemPanel.add(itemPanelNorth, BorderLayout.NORTH);
+                
+                // === CENTER PANEL ===
+                final JPanel itemPanelCenter = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 5));
+                
+                // Quantity controls
+           
+                final JButton deductButton = createButton("-", BOLD_FONT, Color.white, BLUE_COLOR);
+                deductButton.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        // Your logic here
+                        System.out.println("Deduct button clicked");
+                        
+                        deductButton.setEnabled(false);
+               
+                        
+                        // Perform deletion asynchronously to avoid UI freezes
+                        SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+                        	@Override
+                        	protected Void doInBackground() {
+                        	    for (int i = 0; i < clientOrders.size(); i++) {
+                        	        if (clientOrders.get(i).id() == clientOrder.id()) {
+                        	            ClientOrders order = clientOrders.get(i);
+                        	            int currentQuantity = order.quantity();
 
-        
+                        	            int newQuantity = currentQuantity - 1;
+
+                        	            if (newQuantity > 0) {
+                        	                double basePrice = order.price() / (double) currentQuantity;
+                        	                double newPrice = order.price() - basePrice;
+
+                        	                order.setQuantity(newQuantity);
+                        	                order.setPrice(newPrice);
+
+                        	                clientOrders.set(i, order);
+                        	            } else {
+                        	                clientOrders.remove(i);
+                        	            }
+
+                        	            break;
+                        	        }
+                        	    }
+                        	    return null;
+                        	}
+
+
+                            
+                            @Override
+                            protected void done() {
+                                // Update UI in the EDT after background task completes
+           
+                                refreshAddToCart();
+                            }
+                        };
+                        worker.execute();
+                      
+                    }
+                });
+
+                final JLabel quantity = new JLabel(""+clientOrder.quantity);
+                quantity.setForeground(BLUE_COLOR);
+                final JButton increaseButton = createButton("+", BOLD_FONT, Color.white, BLUE_COLOR);
+                
+                increaseButton.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        // Your logic here
+                        System.out.println("increase button clicked");
+                        
+                        increaseButton.setEnabled(false);
+               
+                        
+                        // Perform deletion asynchronously to avoid UI freezes
+                        SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+                        	@Override
+                        	protected Void doInBackground() {
+                        	    for (int i = 0; i < clientOrders.size(); i++) {
+                        	        if (clientOrders.get(i).id() == clientOrder.id()) {
+                        	            ClientOrders order = clientOrders.get(i);
+                        	            int currentQuantity = order.quantity();
+
+                        	            int newQuantity = currentQuantity + 1;
+
+                        	
+                        	                double basePrice = order.price() / (double) currentQuantity;
+                        	                double newPrice = order.price() + basePrice;
+
+                        	                order.setQuantity(newQuantity);
+                        	                order.setPrice(newPrice);
+
+                        	                clientOrders.set(i, order);
+                        	  
+
+                        	            break;
+                        	        }
+                        	    }
+                        	    return null;
+                        	}
+
+
+                            
+                            @Override
+                            protected void done() {
+                                // Update UI in the EDT after background task completes
+           
+                                refreshAddToCart();
+                            }
+                        };
+                        worker.execute();
+                      
+                    }
+                });
+                
+                itemPanelCenter.add(deductButton);
+                itemPanelCenter.add(quantity);
+                itemPanelCenter.add(increaseButton);
+                
+                // Delete button and spinner
+                final JButton deleteButton = new JButton("");
+                deleteButton.setBackground(Color.white);
+                
+                // Delete button icon panel
+                final JPanel deleteIconPanel = new JPanel(new BorderLayout());
+                deleteIconPanel.setSize(20, 20);
+                deleteIconPanel.setOpaque(false);
+                deleteIconPanel.setBackground(TRANSPARENT);
+                
+                // Load icon asynchronously (will be added later in the EDT)
+                final ImageIcon trashIcon = createTrashIcon();
+                
+                // Create an icon-based JLabel instead of using SVG for better compatibility
+                final JLabel deleteIcon = new JLabel(trashIcon);
+                deleteIcon.setSize(20, 20);
+                deleteIconPanel.add(deleteIcon, BorderLayout.CENTER);
+                
+                // Add icon to button
+                deleteButton.add(deleteIconPanel);
+                itemPanelCenter.add(deleteButton);
     
+                // Delete action
+                deleteButton.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        // Show loading indicator
+                        deleteButton.setEnabled(false);
+               
+                        
+                        // Perform deletion asynchronously to avoid UI freezes
+                        SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+                            @Override
+                            protected Void doInBackground() {
+                                // Use more efficient removal technique
+                                clientOrders.removeIf(order -> order.id() == clientOrder.id);
+                                return null;
+                            }
+                            
+                            @Override
+                            protected void done() {
+                                // Update UI in the EDT after background task completes
+           
+                                refreshAddToCart();
+                            }
+                        };
+                        worker.execute();
+                    }
+                });
+                
+                // Add delete icon click listener
+                deleteIcon.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent evt) {
+                        deleteButton.doClick();
+                    }
+                });
+                
+                itemPanel.add(itemPanelCenter, BorderLayout.CENTER);
+                
+                // === WEST PANEL (IMAGE) ===
+                final JPanel itemPanelWrapperWest = new JPanel(new GridBagLayout());
+                
+                // Load and scale image (this is done in background thread already)
+                final ImageIcon scaledImageIcon = loadAndScaleImage(clientOrder.img);
+                final JLabel imageLabel = new JLabel(scaledImageIcon);
+                
+                // Create and configure constraints once
+                final GridBagConstraints gbc = new GridBagConstraints();
+                gbc.gridx = 0;
+                gbc.gridy = 0;
+                gbc.anchor = GridBagConstraints.CENTER;
+                gbc.fill = GridBagConstraints.NONE;
+                gbc.insets = new Insets(10, 10, 10, 10);
+                
+                itemPanelWrapperWest.add(imageLabel, gbc);
+                
+                // === SOUTH PANEL ===
+                final JPanel itemPanelSouth = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 5));
+                itemPanelSouth.add(new JLabel("Size: " + clientOrder.size));
+                itemPanelSouth.add(new JLabel("Add ons: " + clientOrder.Addons));
+                itemPanelSouth.setOpaque(false);
+                
+                itemPanel.add(itemPanelSouth, BorderLayout.SOUTH);
+                
+                // Put it all together
+                contentPanel.add(itemPanelWrapperWest, BorderLayout.WEST);
+                contentPanel.add(itemPanel, BorderLayout.CENTER);
+                
+                return contentPanel;
+            }
+            
+            @Override
+            protected void done() {
+                try {
+                    // Get the completed panel and show it
+                    get(); // Will re-throw any exceptions that occurred
+                    
+                    // Remove loading panel and show content
+                    itemPanelWrapper.remove(loadingPanel);
+                    itemPanelWrapper.add(contentPanel, BorderLayout.CENTER);
+                    contentPanel.setVisible(true);
+                    
+                    // Force UI update
+                    itemPanelWrapper.revalidate();
+                    itemPanelWrapper.repaint();
+                } catch (Exception ex) {
+                    // Handle error (show error message instead of loading)
+                    ex.printStackTrace();
+                    loadingLabel.setText("Error loading item");
+                    mainLoadingBar.setVisible(false);
+                }
+            }
+        };
         
-        JPanel itemPanelWrapperWest = new JPanel();
-        itemPanelWrapper.add(itemPanelWrapperWest,BorderLayout.WEST);
+        // Start the async loading process
+        panelBuilder.execute();
         
-        ImageIcon imageIcon = new ImageIcon("resources/milkTeaImages/" +clientOrder.img ); // Relative path to the image
-        Image image = imageIcon.getImage(); // Get the Image object
+        return itemPanelWrapper;
+    }
+
+    // Helper method to create buttons with consistent settings
+
+
+    // Helper method to load and scale an image
+    private ImageIcon loadAndScaleImage(String imagePath) {
+        // Load image
+        ImageIcon imageIcon = new ImageIcon("resources/milkTeaImages/" + imagePath);
+        Image image = imageIcon.getImage();
         
-        // Calculate the scaling factor to maintain aspect ratio
-        int panelWidth = 50;
-        int panelHeight = 50;
+        // Fixed dimensions to avoid recalculation
+        final int panelWidth = 50;
+        final int panelHeight = 50;
         int imageWidth = image.getWidth(null);
         int imageHeight = image.getHeight(null);
 
+        // Calculate scaling only once
         double aspectRatio = (double) imageWidth / imageHeight;
         int newWidth = panelWidth;
         int newHeight = (int) (panelWidth / aspectRatio);
@@ -598,76 +835,176 @@ public class clientSideCart extends JPanel {
             newWidth = (int) (panelHeight * aspectRatio);
         }
 
-        // Scale the image to fit while maintaining aspect ratio
-        Image scaledImage = image.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
-        ImageIcon scaledImageIcon = new ImageIcon(scaledImage); // Create a new ImageIcon with the scaled image
-        
-        // Create a JLabel to hold the scaled image
- 
-        JLabel imageLabel = new JLabel(scaledImageIcon);
-     // Set the layout of the container to GridBagLayout
-        itemPanelWrapperWest.setLayout(new GridBagLayout());
-
-        // Create a GridBagConstraints object for positioning
-        GridBagConstraints gbc = new GridBagConstraints();
-
-        // Center the component
-        gbc.gridx = 0;  // Horizontal position
-        gbc.gridy = 0;  // Vertical position
-        gbc.anchor = GridBagConstraints.CENTER;  // Center the component
-        gbc.fill = GridBagConstraints.NONE;  // Don't stretch the component
-
-        // Add padding around the component (top, left, bottom, right)
-        gbc.insets = new Insets(10, 10, 10, 10);  // Example: 10px top/bottom, 20px left/right
-
-        // Add the imageLabel with the specified constraints
-        itemPanelWrapperWest.add(imageLabel, gbc);
-
-
-        
-        
-        JPanel itemPanelSouth = new JPanel(new FlowLayout(FlowLayout.LEFT,15,5));
-
-        itemPanelSouth.add(new JLabel("Size: "+clientOrder.size));
-
-        JLabel addonsLabel = new JLabel("Add ons: " + clientOrder.Addons);
-        itemPanelSouth.add(addonsLabel);
-       
-        itemPanelSouth.setOpaque(false);
-        itemPanel.add(itemPanelSouth,BorderLayout.SOUTH);
-        
-        itemPanelWrapper.add(itemPanel,BorderLayout.CENTER);
-        
-        
-        deleteButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-   
-            	clientOrders.removeIf(order -> order.id() == clientOrder.id);
-            	refreshAddToCart();            	
-            
-            }
-        });
-
-        return itemPanelWrapper ;
+        // Use SCALE_FAST for better performance when appropriate
+        Image scaledImage = image.getScaledInstance(newWidth, newHeight, Image.SCALE_FAST);
+        return new ImageIcon(scaledImage);
     }
-    
 
+    // Helper method to create a trash icon (as an alternative to SVG)
+    private ImageIcon createTrashIcon() {
+        // Try to load the existing trash icon first
+        try {
+            File svgFile = new File("resources/icons/trash3-fill.svg");
+            // If SVG file exists, attempt to use it
+            if (svgFile.exists()) {
+                try {
+                    BufferedImage image = new BufferedImage(20, 20, BufferedImage.TYPE_INT_ARGB);
+                    Graphics2D g2d = image.createGraphics();
+                    
+                    // Create a simple trash icon as a fallback if SVG loading fails
+                    g2d.setColor(Color.RED);
+                    g2d.drawRect(3, 2, 14, 2);
+                    g2d.drawRect(5, 4, 10, 14);
+                    g2d.drawLine(8, 6, 8, 16);
+                    g2d.drawLine(12, 6, 12, 16);
+                    
+                    g2d.dispose();
+                    return new ImageIcon(image);
+                } catch (Exception e) {
+                    // SVG conversion failed, use fallback icon
+                    return createFallbackTrashIcon();
+                }
+            } else {
+                // SVG file doesn't exist, use fallback icon
+                return createFallbackTrashIcon();
+            }
+        } catch (Exception e) {
+            return createFallbackTrashIcon();
+        }
+    }
+
+    // Create a simple trash icon as a fallback
+    private ImageIcon createFallbackTrashIcon() {
+        BufferedImage image = new BufferedImage(20, 20, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = image.createGraphics();
+        
+        // Enable anti-aliasing for smoother lines
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        
+        // Set color to match the theme
+        g2d.setColor(Color.decode("#123458"));
+        
+        // Draw trash can outline
+        g2d.drawRect(3, 2, 14, 2);  // Top of trash can
+        g2d.drawRect(5, 4, 10, 14); // Body of trash can
+        
+        // Draw lines for the trash can details
+        g2d.drawLine(8, 6, 8, 16);  // Left line inside trash
+        g2d.drawLine(12, 6, 12, 16); // Right line inside trash
+        
+        g2d.dispose();
+        return new ImageIcon(image);
+    }
+
+    // Simple interfaces to avoid Callable/Consumer dependencies
+    private interface BackgroundTask<T> {
+        T execute() throws Exception;
+    }
+
+    private interface CompletionHandler<T> {
+        void handleCompleted(T result);
+    }
+
+    // Helper method to create buttons with consistent settings
+    private JButton createButton(String text, Font font, Color bg, Color fg) {
+        JButton button = new JButton(text);
+        button.setFont(font);
+        button.setBackground(bg);
+        button.setForeground(fg);
+        return button;
+    }
+
+
+    // Helper method to execute async operations with loading indicators
+    private <T> void executeAsync(
+            JComponent loadingIndicator,
+            JComponent disableWhileLoading,
+            BackgroundTask<T> backgroundTask,
+            CompletionHandler<T> onComplete) {
+        
+        // Show loading indicator
+        if (loadingIndicator != null) {
+            loadingIndicator.setVisible(true);
+        }
+        
+        // Disable component while loading if needed
+        if (disableWhileLoading != null) {
+            disableWhileLoading.setEnabled(false);
+        }
+        
+        SwingWorker<T, Void> worker = new SwingWorker<T, Void>() {
+            @Override
+            protected T doInBackground() throws Exception {
+                return backgroundTask.execute();
+            }
+            
+            @Override
+            protected void done() {
+                try {
+                    // Get the result and pass to completion handler
+                    T result = get();
+                    
+                    // Hide loading indicator
+                    if (loadingIndicator != null) {
+                        loadingIndicator.setVisible(false);
+                    }
+                    
+                    // Re-enable component
+                    if (disableWhileLoading != null) {
+                        disableWhileLoading.setEnabled(true);
+                    }
+                    
+                    // Call the completion handler
+                    if (onComplete != null) {
+                        onComplete.handleCompleted(result);
+                    }
+                } catch (Exception ex) {
+                    // Handle errors
+                    ex.printStackTrace();
+                    
+                    // Hide loading indicator
+                    if (loadingIndicator != null) {
+                        loadingIndicator.setVisible(false);
+                    }
+                    
+                    // Re-enable component
+                    if (disableWhileLoading != null) {
+                        disableWhileLoading.setEnabled(true);
+                    }
+                }
+            }
+        };
+        
+        // Start the worker
+        worker.execute();
+    }
 
     private synchronized void addToCart(String img, String productName, String size, double price, int quantityy, String addons) {
         System.out.println("The add to cart is working");
 
         // Loop through the list of clientOrders to check if the productName, size, and Addons already exist
         boolean exists = false;
-        for (ClientOrders order : clientOrders) {
-            // Check if an order with the same productName, size, and Addons already exists
-            if (order.productName.equals(productName) && order.size.equals(size) && order.Addons.equals(addons)) {
-                // If it exists, increase the quantity
+        for (int i = 0; i < clientOrders.size(); i++) {
+            ClientOrders order = clientOrders.get(i);
+            if (order.productName.equals(productName) &&
+                order.size.equals(size) &&
+                order.Addons.equals(addons)) {
+
+                // Update the quantity or replace the entire object
                 order.quantity += quantityy;
+                
+             // Assume `order.unitPrice` holds the original price for one item
+                order.price = price * order.quantity;
+
+
+                // OR if you want to replace the whole object:
+
+
                 exists = true;
                 break;
             }
         }
+
 
         // If the order doesn't exist, add a new ClientOrder
         if (!exists) {
@@ -685,26 +1022,27 @@ public class clientSideCart extends JPanel {
     }
     
     public void refreshAddToCart() {
-        // Use a SwingWorker to handle UI updates in the background
+        // Use a SwingWorker to handle UI updates
         SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
             @Override
             protected Void doInBackground() throws Exception {
-                // Update cartPanelCenter in the background
-                cartPanelCenter.removeAll();  // Clear the current items once at the beginning
+                cartPanelCenter.removeAll();  // Clear existing cart items
+
+                // Add updated cart item panels
                 for (ClientOrders clientOrder : clientOrders) {
-                    cartPanelCenter.add(cartItemsPanel( clientOrder));  // Add the cart items (UI components)
+                    cartPanelCenter.add(cartItemsPanel(clientOrder));  // This must show updated quantity
                 }
+
                 return null;
             }
 
             @Override
             protected void done() {
-                // Perform the UI update after all components are added
-                cartPanelCenter.revalidate();
-                cartPanelCenter.repaint();
+                cartPanelCenter.revalidate();  // Recalculate layout
+                cartPanelCenter.repaint();     // Redraw panel
             }
         };
-        worker.execute();  // Start the worker
+        worker.execute();  // Start background task
     }
 
 

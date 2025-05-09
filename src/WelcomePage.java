@@ -4,6 +4,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 public class WelcomePage {
     private JFrame WelcomeFrame;
@@ -146,12 +151,32 @@ public class WelcomePage {
     }
 
     public static void main(String[] args) {
-       
-    	clientSideCart.products.add(new Product(1, "Robert", 100,110,120,"product1.png",true));
-    	clientSideCart.products.add(new Product(2, "Anjo", 200,210,220,"product2.png",true));
-    	clientSideCart.products.add(new Product(3, "Delos", 300,310,320,"product1.png",true));
-    	clientSideCart.products.add(new Product(4, "Reyes", 400,410,420,"product1.png",true));
-    	clientSideCart.products.add(new Product(5, "Pogi", 500,510,520,"product1.png",true));
+    	
+    	  try (Connection conn = dbCon.getConnection()) {
+              Statement stmt = conn.createStatement();
+              ResultSet rs = stmt.executeQuery("SELECT * FROM Product");
+
+              System.out.println("Product Table Data:");
+
+              while (rs.next()) {
+                  int id = rs.getInt("id");
+                  String productName = rs.getString("productName");
+                  double small = rs.getDouble("small");
+                  double medium = rs.getDouble("medium");
+                  double large = rs.getDouble("large");
+                  String img = rs.getString("img");
+                  Boolean availability = rs.getBoolean("availability");
+                  clientSideCart.products.add(new Product(id, productName, small,medium,large,img,availability));
+
+                  System.out.println("ID: " + id + ", Name: " + productName + ", Price: " + small);
+              }
+              
+          } catch (SQLException e) {
+              e.printStackTrace();
+          }
+
+    
+
     	
     	clientSideCart.addOns.add(new AddOns(1, "Pearl",10,true));
     	clientSideCart.addOns.add(new AddOns(2, "Nata de Coco",20,true));
