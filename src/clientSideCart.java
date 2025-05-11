@@ -30,6 +30,7 @@ public class clientSideCart extends JPanel {
     private DefaultListModel<String> cartModel;
     private JList<String> cartList;
     private JLabel totalLabel;
+    private JButton buyButton;
     private int totalPrice = 0;
     public static List<AddOns> addOns = new ArrayList<>();
     public static List<Product> products = new ArrayList<>();
@@ -130,10 +131,12 @@ public class clientSideCart extends JPanel {
             
 
 
-        totalLabel = new JLabel("Total: PHP 0");
+        totalLabel = new JLabel("Total: PHP " + String.format("%.2f", currentTotal));
+        
+
         JPanel bottomPanel = new JPanel();
         JButton emptyButton = new JButton("Empty");
-        JButton buyButton = new JButton("Buy");
+        buyButton = new JButton("Buy");
         
         emptyButton.setBackground(Color.RED);
         emptyButton.setForeground(Color.WHITE);
@@ -141,7 +144,16 @@ public class clientSideCart extends JPanel {
         
         buyButton.setBackground(Color.GREEN);
         buyButton.setForeground(Color.WHITE);
-        buyButton.addActionListener(e -> JOptionPane.showMessageDialog(this, "Purchase Complete!"));
+        
+        // Add appropriate listener
+        if (currentTotal == 0.0) {
+            buyButton.addActionListener(e ->
+                JOptionPane.showMessageDialog(null, "Please add some product to cart.")
+            );
+        } 
+
+
+
         
         bottomPanel.add(totalLabel);
         bottomPanel.add(emptyButton);
@@ -970,22 +982,98 @@ public class clientSideCart extends JPanel {
         SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
             @Override
             protected Void doInBackground() throws Exception {
-                cartPanelCenter.removeAll();  // Clear existing cart items
+                cartPanelCenter.removeAll(); // Clear existing cart items
 
                 // Add updated cart item panels
                 for (ClientOrders clientOrder : clientOrders) {
-                    cartPanelCenter.add(cartItemsPanel(clientOrder));  // This must show updated quantity
+                    cartPanelCenter.add(cartItemsPanel(clientOrder)); // Should reflect updated quantity
                 }
-                
+
+                // Calculate total
                 currentTotal = 0.0;
                 for (ClientOrders order : clientOrders) {
-                	currentTotal += order.price;
+                    currentTotal += order.price;
                 }
-                
+
                 System.out.println("Total order: " + currentTotal);
+
+                // Update UI components safely on EDT
+                SwingUtilities.invokeLater(() -> {
+                    // Remove old action listeners
+                    for (ActionListener al : buyButton.getActionListeners()) {
+                        buyButton.removeActionListener(al);
+                    }
+
+                    // Add appropriate listener
+                    if (currentTotal == 0.0) {
+                        buyButton.addActionListener(e ->
+                            JOptionPane.showMessageDialog(null, "Please add some product to cart.")
+                        );
+                    } else {
+                    	
+                    	StringBuilder message = new StringBuilder("<html><body style='font-family: \"Segoe UI\", Tahoma, Geneva, Verdana, sans-serif; color: #333; padding: 20px; border-radius: 10px; background-color: transparent;'>");
+                    	message.append("<h2 style='color: #4CAF50;'>Your Order</h2>");
+
+                    	for (ClientOrders order : clientOrders) {
+                    	    message.append("<div style='border-bottom: 2px solid #ddd; padding: 10px 0;'>")
+                    	           .append("<p><b style='color: #333;'>Product Name:</b> <span style='color: #555;'>" + order.productName + "</span></p>")
+                    	           .append("<p><b style='color: #333;'>Quantity:</b> <span style='color: #555;'>" + order.quantity + "</span></p>")
+                    	           .append("<p><b style='color: #333;'>Price:</b> <span style='color: #555;'>Php " + String.format("%.2f", order.price) + "</span></p>")
+                    	           .append("<p><b style='color: #333;'>Add-ons:</b> <span style='color: #555;'>" + order.Addons + "</span></p>")
+                    	           .append("<p><b style='color: #333;'>Size:</b> <span style='color: #555;'>" + order.size + "</span></p>")
+                    	           .append("</div>");
+                    	}
+
+                    	message.append("<hr style='border: none; border-top: 2px solid #4CAF50; margin: 20px 0;'>")
+                    	       .append("<p style='font-size: 18px;'><b style='color: #333;'>Total: </b><span style='color: #4CAF50;'>Php " + String.format("%.2f", currentTotal) + "</span></p>");
+                    	message.append("</body></html>");
+
+                    	buyButton.addActionListener(e -> {
+                    	    String messageText = message.toString();
+
+                    	    // Create the label with the message, keeping the HTML formatting intact
+                    	    JLabel label = new JLabel(messageText);
+
+                    	    // Remove the background of the label (set it to transparent)
+                    	    label.setOpaque(false);
+
+                    	    // Set horizontal alignment to center
+                    	    label.setHorizontalAlignment(SwingConstants.CENTER);
+
+                    	    // Adding scroll functionality with only vertical scrollbar
+                    	    JScrollPane scrollPane = new JScrollPane(label);
+                    	    scrollPane.setPreferredSize(new Dimension(400, 300));  // Optional: set the size of the scroll pane
+                    	    scrollPane.getVerticalScrollBar().setUnitIncrement(16);  // Smooth scrolling
+
+                    	    // Set horizontal scroll bar to always be off
+                    	    scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
+                    	    // Show the dialog with the scrollable message
+                    	    int result = JOptionPane.showConfirmDialog(
+                    	        null,
+                    	        scrollPane,  // Use scrollPane instead of the raw message text
+                    	        "Do you want to checkout?",
+                    	        JOptionPane.YES_NO_OPTION
+                    	    );
+
+                    	    if (result == JOptionPane.YES_OPTION) {
+                    	        JOptionPane.showMessageDialog(null, "You can proceed to checkout.");
+                    	        // Add checkout logic here
+                    	    } else {
+                    	        JOptionPane.showMessageDialog(null, "Purchase canceled.");
+                    	    }
+                    	});
+
+
+
+
+           
+                    }
+                });
 
                 return null;
             }
+
 
             @Override
             protected void done() {
@@ -993,6 +1081,7 @@ public class clientSideCart extends JPanel {
                 cartPanelCenter.repaint();     // Redraw panel
                 
                 totalLabel.setText(String.format("Total: PHP %.2f", currentTotal));
+              
             }
         };
         worker.execute();  // Start background task

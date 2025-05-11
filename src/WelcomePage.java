@@ -76,21 +76,7 @@ public class WelcomePage {
                 	};
                 	worker.execute();  // Start the worker
 
-            
-                /*	System.out.print("asdasd");
-                	clientSideCart.products.add(new Product(1, "Robert", 100,110,120,"product1.png",true));
-                	clientSideCart.products.add(new Product(2, "Anjo", 200,210,220,"product2.png",true));
-                	clientSideCart.products.add(new Product(3, "Delos", 300,310,320,"product1.png",true));
-                	clientSideCart.products.add(new Product(4, "Reyes", 400,410,420,"product1.png",true));
-                	clientSideCart.products.add(new Product(5, "Pogi", 500,510,520,"product1.png",true));
-                	
-                	clientSideCart.addOns.add(new AddOns(1, "Pearl",10,true));
-                	clientSideCart.addOns.add(new AddOns(2, "Nata de Coco",20,true));
-                	clientSideCart.addOns.add(new AddOns(3, "Crushed Oreos",30,true));
-                	clientSideCart milkTeaShop = new clientSideCart();
-                	
-                    AddProductConsole addProductConsole = new AddProductConsole(milkTeaShop);
-                    addProductConsole.addProduct(); // This will add a product via console input*/
+
                 	
                 }
                 
@@ -174,13 +160,34 @@ public class WelcomePage {
           } catch (SQLException e) {
               e.printStackTrace();
           }
+    	  
+    	  
+    	  try (Connection conn = dbCon.getConnection()) {
+              Statement stmt = conn.createStatement();
+              ResultSet rs = stmt.executeQuery("SELECT * FROM addOns");
 
-    
+              System.out.println("Product Table Data:");
 
-    	
-    	clientSideCart.addOns.add(new AddOns(1, "Pearl",10,true));
-    	clientSideCart.addOns.add(new AddOns(2, "Nata de Coco",20,true));
-    	clientSideCart.addOns.add(new AddOns(3, "Crushed Oreos",30,true));
+              while (rs.next()) {
+                  int id = rs.getInt("id");
+                  String AddOnName = rs.getString("AddOnName");
+                  double AddOnPrice = rs.getDouble("AddOnPrice");
+                  boolean Availability = rs.getBoolean("Availability");
+         
+                  
+              	clientSideCart.addOns.add(new AddOns(id, AddOnName,AddOnPrice,Availability));
+            
+
+                 
+              }
+              
+          } catch (SQLException e) {
+              e.printStackTrace();
+          }
+
+   	
+
+
     	 new WelcomePage();
       
     }

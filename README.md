@@ -12,12 +12,10 @@ A standalone Java-based Milk Tea Shop Kiosk system designed for small businesses
 ## 🛠️ Technologies Used
 
 
-- **Java Swing**
-- **Java Awt** 
+- **Java**
 - **Object-Oriented Programming**
 - **Mysql** 
-
-
+- **Maven**
 
 ## 📷 Screenshots
 
