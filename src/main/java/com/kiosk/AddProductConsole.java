@@ -1,4 +1,7 @@
+package com.kiosk;
 import java.util.Scanner;
+
+import com.kiosk.Model.Product;
 public class AddProductConsole {
     private Scanner scanner;
     private clientSideCart milkTeaShop;
@@ -11,7 +14,7 @@ public class AddProductConsole {
     public void addProduct() {
     	inneraddProduct();
     }
-    
+
     public void inneraddProduct(){
     	System.out.print("Enter product id: ");
         int id = scanner.nextInt();
@@ -38,12 +41,12 @@ public class AddProductConsole {
         scanner.nextLine(); // Consume newline
 
         // Add the product to the MilkTeaShop products list
-        milkTeaShop.products.add(new Product(id, name, price1, price2, price3, image, available));
+        clientSideCart.products.add(new Product(id, name, price1, price2, price3, image, available));
 
         // Refresh the product panel
         milkTeaShop.refreshProductPanel();
         System.out.println("Product added successfully!");
         addProduct();
-    	
+
     }
 }

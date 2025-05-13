@@ -1,3 +1,5 @@
+package com.kiosk.Model;
+
 public class Product {
     int id;
     String productName;
@@ -45,5 +47,5 @@ public class Product {
         return availability;
     }
 
-   
+
 }

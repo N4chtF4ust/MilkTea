@@ -1,7 +1,28 @@
-import javax.swing.*;
-import javax.swing.event.*;
-import java.awt.*;
-import java.awt.event.*;
+package com.kiosk;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 public class SignUp extends JPanel {
 
@@ -39,15 +60,18 @@ public class SignUp extends JPanel {
         add(fullNameErrorLabel, gbc);
 
         fullNameText.getDocument().addDocumentListener(new DocumentListener() {
-            public void insertUpdate(DocumentEvent e) {
+            @Override
+			public void insertUpdate(DocumentEvent e) {
                 validateFullName(fullNameText, fullNameErrorLabel);
             }
 
-            public void removeUpdate(DocumentEvent e) {
+            @Override
+			public void removeUpdate(DocumentEvent e) {
                 validateFullName(fullNameText, fullNameErrorLabel);
             }
 
-            public void changedUpdate(DocumentEvent e) {
+            @Override
+			public void changedUpdate(DocumentEvent e) {
                 validateFullName(fullNameText, fullNameErrorLabel);
             }
         });
@@ -67,15 +91,18 @@ public class SignUp extends JPanel {
         add(userErrorLabel, gbc);
 
         userText.getDocument().addDocumentListener(new DocumentListener() {
-            public void insertUpdate(DocumentEvent e) {
+            @Override
+			public void insertUpdate(DocumentEvent e) {
                 validateUsername(userText, userErrorLabel);
             }
 
-            public void removeUpdate(DocumentEvent e) {
+            @Override
+			public void removeUpdate(DocumentEvent e) {
                 validateUsername(userText, userErrorLabel);
             }
 
-            public void changedUpdate(DocumentEvent e) {
+            @Override
+			public void changedUpdate(DocumentEvent e) {
                 validateUsername(userText, userErrorLabel);
             }
         });
@@ -95,15 +122,18 @@ public class SignUp extends JPanel {
         add(passErrorLabel, gbc);
 
         passText.getDocument().addDocumentListener(new DocumentListener() {
-            public void insertUpdate(DocumentEvent e) {
+            @Override
+			public void insertUpdate(DocumentEvent e) {
                 validatePassword(passText, passErrorLabel);
             }
 
-            public void removeUpdate(DocumentEvent e) {
+            @Override
+			public void removeUpdate(DocumentEvent e) {
                 validatePassword(passText, passErrorLabel);
             }
 
-            public void changedUpdate(DocumentEvent e) {
+            @Override
+			public void changedUpdate(DocumentEvent e) {
                 validatePassword(passText, passErrorLabel);
             }
         });
@@ -123,15 +153,18 @@ public class SignUp extends JPanel {
         add(confirmPassErrorLabel, gbc);
 
         confirmPassText.getDocument().addDocumentListener(new DocumentListener() {
-            public void insertUpdate(DocumentEvent e) {
+            @Override
+			public void insertUpdate(DocumentEvent e) {
                 validateConfirmPassword(passText, confirmPassText, confirmPassErrorLabel);
             }
 
-            public void removeUpdate(DocumentEvent e) {
+            @Override
+			public void removeUpdate(DocumentEvent e) {
                 validateConfirmPassword(passText, confirmPassText, confirmPassErrorLabel);
             }
 
-            public void changedUpdate(DocumentEvent e) {
+            @Override
+			public void changedUpdate(DocumentEvent e) {
                 validateConfirmPassword(passText, confirmPassText, confirmPassErrorLabel);
             }
         });
@@ -151,15 +184,18 @@ public class SignUp extends JPanel {
         add(contactErrorLabel, gbc);
 
         contactText.getDocument().addDocumentListener(new DocumentListener() {
-            public void insertUpdate(DocumentEvent e) {
+            @Override
+			public void insertUpdate(DocumentEvent e) {
                 validateContact(contactText, contactErrorLabel);
             }
 
-            public void removeUpdate(DocumentEvent e) {
+            @Override
+			public void removeUpdate(DocumentEvent e) {
                 validateContact(contactText, contactErrorLabel);
             }
 
-            public void changedUpdate(DocumentEvent e) {
+            @Override
+			public void changedUpdate(DocumentEvent e) {
                 validateContact(contactText, contactErrorLabel);
             }
         });
@@ -180,15 +216,18 @@ public class SignUp extends JPanel {
         add(addressErrorLabel, gbc);
 
         addressText.getDocument().addDocumentListener(new DocumentListener() {
-            public void insertUpdate(DocumentEvent e) {
+            @Override
+			public void insertUpdate(DocumentEvent e) {
                 validateAddress(addressText, addressErrorLabel);
             }
 
-            public void removeUpdate(DocumentEvent e) {
+            @Override
+			public void removeUpdate(DocumentEvent e) {
                 validateAddress(addressText, addressErrorLabel);
             }
 
-            public void changedUpdate(DocumentEvent e) {
+            @Override
+			public void changedUpdate(DocumentEvent e) {
                 validateAddress(addressText, addressErrorLabel);
             }
         });
@@ -200,7 +239,8 @@ public class SignUp extends JPanel {
         add(termsLinkLabel, gbc);
 
         termsLinkLabel.addMouseListener(new MouseAdapter() {
-            public void mouseClicked(MouseEvent e) {
+            @Override
+			public void mouseClicked(MouseEvent e) {
                 JFrame parentFrame = (JFrame) SwingUtilities.getWindowAncestor(SignUp.this);
                 showTermsDialog(parentFrame);
             }
@@ -277,7 +317,8 @@ public class SignUp extends JPanel {
         add(loginLink, gbc);
 
         loginLink.addMouseListener(new MouseAdapter() {
-            public void mouseClicked(MouseEvent e) {
+            @Override
+			public void mouseClicked(MouseEvent e) {
                 // Open login screen
                 JOptionPane.showMessageDialog(SignUp.this, "Login screen here.");
             }
@@ -364,5 +405,5 @@ public class SignUp extends JPanel {
     }
 
 
-    
+
 }

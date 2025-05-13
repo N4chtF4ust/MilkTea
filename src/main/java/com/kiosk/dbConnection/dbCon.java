@@ -1,7 +1,9 @@
-import io.github.cdimascio.dotenv.Dotenv;
+package com.kiosk.dbConnection;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+
+import io.github.cdimascio.dotenv.Dotenv;
 
 public class dbCon {
     private static final Dotenv dotenv = Dotenv.load();
