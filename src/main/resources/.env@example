@@ -1,5 +1,13 @@
 #here is the example of env of this project 
 
+
+#Database keys
 DB_URL=
 DB_USER=
 DB_PASSWORD=
+
+#Supabase keys
+SUPABASE_URL=
+SUPABASE_API_KEY=
+BUCKET_NAME=
+
