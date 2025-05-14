@@ -189,6 +189,7 @@ public class Welcome {
 
     // === Main Method ===
     public static void main(String[] args) {
+    	//Hello
         loadProducts();
         loadAddOns();
         new Welcome();

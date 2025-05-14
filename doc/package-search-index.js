@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"com.kiosk"},{"l":"com.kiosk.dbConnection"},{"l":"com.kiosk.loading"},{"l":"com.kiosk.Model"}];updateSearchResults();

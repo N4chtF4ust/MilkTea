@@ -47,6 +47,8 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.plaf.basic.BasicComboBoxUI;
 
+import org.json.JSONObject;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -55,10 +57,33 @@ import com.kiosk.Model.AddOns;
 import com.kiosk.Model.ClientOrders;
 import com.kiosk.Model.Product;
 import com.kiosk.loading.loadingRotate;
+import com.kiosk.supabase.SupabaseConfig;
+
+import okhttp3.MediaType;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
+import java.net.URL;
+import com.kiosk.supabase.*;
 
 
+import okhttp3.*;
+import org.json.JSONArray;
 
 
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import java.awt.*;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+
+import java.nio.file.Files;
+
+import java.util.concurrent.TimeUnit;
+import java.net.MalformedURLException;
 
 
 public class clientSideCart extends JPanel {
@@ -376,31 +401,42 @@ public class clientSideCart extends JPanel {
         wrapperPanel.add(dropdownButton);
 
         // Load the image
-        ImageIcon imageIcon = new ImageIcon("resources/milkTeaImages/"+product.img()); // Relative path to the image
-        Image image = imageIcon.getImage(); // Get the Image object
+     // Using getClass().getResource() to correctly reference the image from the resources folder
 
-        // Calculate the scaling factor to maintain aspect ratio
-        int panelWidth = 150;
-        int panelHeight = 150;
-        int imageWidth = image.getWidth(null);
-        int imageHeight = image.getHeight(null);
 
-        double aspectRatio = (double) imageWidth / imageHeight;
-        int newWidth = panelWidth;
-        int newHeight = (int) (panelWidth / aspectRatio);
+        // Image loading
+        try {
+            String signedUrl = getSupabaseImageUrl(product.img());
+            if (signedUrl != null) {
+                URL imageURL = new URL(signedUrl);
+                ImageIcon imageIcon = new ImageIcon(imageURL);
+                Image image = imageIcon.getImage();
 
-        if (newHeight > panelHeight) {
-            newHeight = panelHeight;
-            newWidth = (int) (panelHeight * aspectRatio);
+                int panelWidth = 150;
+                int panelHeight = 150;
+                int imageWidth = image.getWidth(null);
+                int imageHeight = image.getHeight(null);
+
+                double aspectRatio = (double) imageWidth / imageHeight;
+                int newWidth = panelWidth;
+                int newHeight = (int) (panelWidth / aspectRatio);
+
+                if (newHeight > panelHeight) {
+                    newHeight = panelHeight;
+                    newWidth = (int) (panelHeight * aspectRatio);
+                }
+
+                Image scaledImage = image.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
+                JLabel imageLabel = new JLabel(new ImageIcon(scaledImage));
+                panel.add(imageLabel, BorderLayout.CENTER);
+            }
+        } catch (MalformedURLException e) {
+            System.err.println("Invalid URL for image: " + e.getMessage());
         }
 
-        // Scale the image to fit while maintaining aspect ratio
-        Image scaledImage = image.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
-        ImageIcon scaledImageIcon = new ImageIcon(scaledImage); // Create a new ImageIcon with the scaled image
-
         // Create a JLabel to hold the scaled image
-        JLabel imageLabel = new JLabel(scaledImageIcon);
-        panel.add(imageLabel, BorderLayout.CENTER);
+ 
+
 
         JLabel nameLabel = new JLabel(product.productName());
 
@@ -572,6 +608,56 @@ public class clientSideCart extends JPanel {
 
         return panel;
     }
+    
+    
+    private String getSupabaseImageUrl(String fileName) {
+        // Check for null, empty, or placeholder filename
+        if (fileName == null || fileName.trim().isEmpty() || fileName.equals(".emptyFolderPlaceholder")) {
+            System.err.println("Invalid or placeholder filename provided: " + fileName);
+            return ""; // or return a default placeholder image URL if you have one
+        }
+
+        try {
+            // Set a long expiration time (e.g., one year)
+            JSONObject json = new JSONObject();
+            json.put("expiresIn", 60 * 60 * 24 * 365); // 1 year in seconds
+
+            RequestBody body = RequestBody.create(
+                    MediaType.parse("application/json"),
+                    json.toString()
+            );
+
+            Request request = new Request.Builder()
+                    .url(SupabaseConfig.SUPABASE_URL + "/storage/v1/object/sign/" + SupabaseConfig.BUCKET_NAME + "/" + fileName)
+                    .addHeader("apikey", SupabaseConfig.SUPABASE_API_KEY)
+                    .addHeader("Authorization", "Bearer " + SupabaseConfig.SUPABASE_API_KEY)
+                    .post(body)
+                    .build();
+
+            try (Response response = SupabaseImageUploaderGUI.client.newCall(request).execute()) {
+                if (response.isSuccessful() && response.body() != null) {
+                    String responseString = response.body().string();
+                    JSONObject responseJson = new JSONObject(responseString);
+
+                    if (responseJson.has("signedURL")) {
+                        return SupabaseConfig.SUPABASE_URL + "/storage/v1" + responseJson.getString("signedURL");
+                    } else {
+                        System.err.println("Signed URL not present in response: " + responseString);
+                    }
+                } else {
+                    System.err.println("Failed to generate signed URL. HTTP Code: " + response.code());
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Exception while generating signed URL: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        // Fallback to public URL
+        return SupabaseConfig.SUPABASE_URL + "/storage/v1/object/public/" + SupabaseConfig.BUCKET_NAME + "/" + fileName;
+    }
+    
+    
 
     private JPanel cartItemsPanel(final ClientOrders clientOrder) {
         // Pre-define colors and dimensions
@@ -900,30 +986,47 @@ public class clientSideCart extends JPanel {
 
     // Helper method to load and scale an image
     private ImageIcon loadAndScaleImage(String imagePath) {
-        // Load image
-        ImageIcon imageIcon = new ImageIcon("resources/milkTeaImages/" + imagePath);
-        Image image = imageIcon.getImage();
+        try {
+            String signedUrl = getSupabaseImageUrl(imagePath);
+            if (signedUrl != null) {
+                URL imageURL = new URL(signedUrl);
+                ImageIcon imageIcon = new ImageIcon(imageURL);
+                Image image = imageIcon.getImage();
 
-        // Fixed dimensions to avoid recalculation
-        final int panelWidth = 50;
-        final int panelHeight = 50;
-        int imageWidth = image.getWidth(null);
-        int imageHeight = image.getHeight(null);
+                final int panelWidth = 50;
+                final int panelHeight = 50;
+                int imageWidth = image.getWidth(null);
+                int imageHeight = image.getHeight(null);
 
-        // Calculate scaling only once
-        double aspectRatio = (double) imageWidth / imageHeight;
-        int newWidth = panelWidth;
-        int newHeight = (int) (panelWidth / aspectRatio);
+                // Fallback in case image failed to load
+                if (imageWidth <= 0 || imageHeight <= 0) {
+                    System.err.println("Failed to load image dimensions.");
+                    return null;
+                }
 
-        if (newHeight > panelHeight) {
-            newHeight = panelHeight;
-            newWidth = (int) (panelHeight * aspectRatio);
+                double aspectRatio = (double) imageWidth / imageHeight;
+                int newWidth = panelWidth;
+                int newHeight = (int) (panelWidth / aspectRatio);
+
+                if (newHeight > panelHeight) {
+                    newHeight = panelHeight;
+                    newWidth = (int) (panelHeight * aspectRatio);
+                }
+
+                Image scaledImage = image.getScaledInstance(newWidth, newHeight, Image.SCALE_FAST);
+                return new ImageIcon(scaledImage);
+            } else {
+                System.err.println("Signed URL is null for imagePath: " + imagePath);
+            }
+        } catch (MalformedURLException e) {
+            System.err.println("Invalid URL for image: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Error loading or scaling image: " + e.getMessage());
         }
 
-        // Use SCALE_FAST for better performance when appropriate
-        Image scaledImage = image.getScaledInstance(newWidth, newHeight, Image.SCALE_FAST);
-        return new ImageIcon(scaledImage);
+        return null; // Ensure method always returns a value
     }
+
 
 
 
