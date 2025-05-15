@@ -56,8 +56,10 @@ import com.google.gson.JsonParser;
 import com.kiosk.Model.AddOns;
 import com.kiosk.Model.ClientOrders;
 import com.kiosk.Model.Product;
+import com.kiosk.dbConnection.dbCon;
 import com.kiosk.loading.loadingRotate;
 import com.kiosk.supabase.SupabaseConfig;
+import com.kiosk.cache_image.*;
 
 import okhttp3.MediaType;
 import okhttp3.Request;
@@ -85,6 +87,20 @@ import java.nio.file.Files;
 import java.util.concurrent.TimeUnit;
 import java.net.MalformedURLException;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+
+
+
 
 public class clientSideCart extends JPanel {
     private DefaultListModel<String> cartModel;
@@ -106,10 +122,13 @@ public class clientSideCart extends JPanel {
     public static JPanel cartPanelCenter = new JPanel();
 
     public clientSideCart() {
+    	
+ 
+      
+      		
+     
 
-    	if (!clientOrders.isEmpty()) {
-    	    clearCart();
-    	}
+
 
 
 
@@ -136,7 +155,7 @@ public class clientSideCart extends JPanel {
         cartPanelNorth.setBackground(Color.WHITE);
 
 
-        cartPanelNorth.setBorder(new LineBorder(Color.decode("#123458"), 2));
+        cartPanelNorth.setBorder(new LineBorder(Color.decode("#123458"), 1));
 
 
         JPanel cartIcons = new JPanel() {
@@ -179,6 +198,12 @@ public class clientSideCart extends JPanel {
 
         // Wrap cartPanelCenter inside JScrollPane
         JScrollPane scrollPane = new JScrollPane(cartPanelCenter);
+     // Set background color (e.g., light gray)
+        Color bgColor = Color.decode("#D9D9D9");
+        cartPanelCenter.setBackground(bgColor); // Set background for the panel inside the scroll pane
+      
+
+        
         scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.setPreferredSize(new Dimension(400,600));
@@ -206,7 +231,7 @@ public class clientSideCart extends JPanel {
         emptyButton.setForeground(Color.WHITE);
         emptyButton.addActionListener(e -> clearCart());
 
-        buyButton.setBackground(Color.GREEN);
+        buyButton.setBackground(Color.decode("#123458"));
         buyButton.setForeground(Color.WHITE);
 
         // Add appropriate listener
@@ -406,7 +431,7 @@ public class clientSideCart extends JPanel {
 
         // Image loading
         try {
-            String signedUrl = getSupabaseImageUrl(product.img());
+            String signedUrl = GetCachedImagePath.getCachedImagePath(product.img());
             if (signedUrl != null) {
                 URL imageURL = new URL(signedUrl);
                 ImageIcon imageIcon = new ImageIcon(imageURL);
@@ -610,53 +635,8 @@ public class clientSideCart extends JPanel {
     }
     
     
-    private String getSupabaseImageUrl(String fileName) {
-        // Check for null, empty, or placeholder filename
-        if (fileName == null || fileName.trim().isEmpty() || fileName.equals(".emptyFolderPlaceholder")) {
-            System.err.println("Invalid or placeholder filename provided: " + fileName);
-            return ""; // or return a default placeholder image URL if you have one
-        }
-
-        try {
-            // Set a long expiration time (e.g., one year)
-            JSONObject json = new JSONObject();
-            json.put("expiresIn", 60 * 60 * 24 * 365); // 1 year in seconds
-
-            RequestBody body = RequestBody.create(
-                    MediaType.parse("application/json"),
-                    json.toString()
-            );
-
-            Request request = new Request.Builder()
-                    .url(SupabaseConfig.SUPABASE_URL + "/storage/v1/object/sign/" + SupabaseConfig.BUCKET_NAME + "/" + fileName)
-                    .addHeader("apikey", SupabaseConfig.SUPABASE_API_KEY)
-                    .addHeader("Authorization", "Bearer " + SupabaseConfig.SUPABASE_API_KEY)
-                    .post(body)
-                    .build();
-
-            try (Response response = SupabaseImageUploaderGUI.client.newCall(request).execute()) {
-                if (response.isSuccessful() && response.body() != null) {
-                    String responseString = response.body().string();
-                    JSONObject responseJson = new JSONObject(responseString);
-
-                    if (responseJson.has("signedURL")) {
-                        return SupabaseConfig.SUPABASE_URL + "/storage/v1" + responseJson.getString("signedURL");
-                    } else {
-                        System.err.println("Signed URL not present in response: " + responseString);
-                    }
-                } else {
-                    System.err.println("Failed to generate signed URL. HTTP Code: " + response.code());
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("Exception while generating signed URL: " + e.getMessage());
-            e.printStackTrace();
-        }
-
-        // Fallback to public URL
-        return SupabaseConfig.SUPABASE_URL + "/storage/v1/object/public/" + SupabaseConfig.BUCKET_NAME + "/" + fileName;
-    }
     
+
     
 
     private JPanel cartItemsPanel(final ClientOrders clientOrder) {
@@ -670,7 +650,8 @@ public class clientSideCart extends JPanel {
 
         // Create wrapper panel
         final JPanel itemPanelWrapper = new JPanel(new BorderLayout());
-        itemPanelWrapper.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+        itemPanelWrapper.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, BLUE_COLOR));
+
         itemPanelWrapper.setMinimumSize(PANEL_SIZE);
         itemPanelWrapper.setMaximumSize(PANEL_SIZE);
 
@@ -715,7 +696,8 @@ public class clientSideCart extends JPanel {
                 );
             }
         };
-        loadingPanel.setPreferredSize(PANEL_SIZE);
+        
+
         loadingPanel.setName("loadingPanel");
         loadingPanel.add(loadingLabel);
         loadingPanel.add(mainLoadingBar);
@@ -751,7 +733,7 @@ public class clientSideCart extends JPanel {
                 final JPanel itemPanelCenter = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 5));
 
                 // Quantity controls
-                final JButton deductButton = createButton("-", BOLD_FONT, Color.white, BLUE_COLOR);
+                final JButton deductButton = createButton("-", BOLD_FONT,BLUE_COLOR, Color.white);
                 deductButton.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
@@ -805,7 +787,7 @@ public class clientSideCart extends JPanel {
 
                 final JLabel quantity = new JLabel(""+clientOrder.quantity());
                 quantity.setForeground(BLUE_COLOR);
-                final JButton increaseButton = createButton("+", BOLD_FONT, Color.white, BLUE_COLOR);
+                final JButton increaseButton = createButton("+", BOLD_FONT, BLUE_COLOR,Color.white);
 
                 increaseButton.addActionListener(new ActionListener() {
                     @Override
@@ -880,6 +862,10 @@ public class clientSideCart extends JPanel {
 
                 // Add icon to button
                 deleteButton.add(deleteIconPanel);
+                deleteButton.setBackground(Color.RED);;
+                
+                
+             
                 itemPanelCenter.add(deleteButton);
 
                 // Delete action
@@ -901,7 +887,7 @@ public class clientSideCart extends JPanel {
 
                             @Override
                             protected void done() {
-                                // Update UI in the EDT after background task completes
+                      
 
                                 refreshAddToCart();
                             }
@@ -939,8 +925,23 @@ public class clientSideCart extends JPanel {
 
                 // === SOUTH PANEL ===
                 final JPanel itemPanelSouth = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 5));
-                itemPanelSouth.add(new JLabel("Size: " + clientOrder.size()));
-                itemPanelSouth.add(new JLabel("Add ons: " + clientOrder.Addons()));
+                JLabel sizeLabel = new JLabel("Size: " + clientOrder.size());
+                sizeLabel.setFont(new Font("Arial", Font.PLAIN, 12)); // 10 is a small font size
+                itemPanelSouth.add(sizeLabel);
+
+             // Get the addons text
+                String addonsText = "Add ons: " + clientOrder.Addons();
+
+                // Truncate if it's too long
+                int maxLength = 30; // Adjust to your UI's width
+                if (addonsText.length() > maxLength) {
+                    addonsText = addonsText.substring(0, maxLength - 3) + "...";
+                }
+
+                JLabel addonsLabel = new JLabel(addonsText);
+                addonsLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+                itemPanelSouth.add(addonsLabel);
+
                 itemPanelSouth.setOpaque(false);
 
                 itemPanel.add(itemPanelSouth, BorderLayout.SOUTH);
@@ -987,7 +988,7 @@ public class clientSideCart extends JPanel {
     // Helper method to load and scale an image
     private ImageIcon loadAndScaleImage(String imagePath) {
         try {
-            String signedUrl = getSupabaseImageUrl(imagePath);
+            String signedUrl = GetCachedImagePath.getCachedImagePath(imagePath);
             if (signedUrl != null) {
                 URL imageURL = new URL(signedUrl);
                 ImageIcon imageIcon = new ImageIcon(imageURL);
@@ -1027,9 +1028,6 @@ public class clientSideCart extends JPanel {
         return null; // Ensure method always returns a value
     }
 
-
-
-
     // Create a simple trash icon as a fallback
     private ImageIcon createTrashIcon() {
         BufferedImage image = new BufferedImage(20, 20, BufferedImage.TYPE_INT_ARGB);
@@ -1039,7 +1037,7 @@ public class clientSideCart extends JPanel {
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         // Set color to match the theme
-        g2d.setColor(Color.decode("#123458"));
+        g2d.setColor(Color.WHITE);
 
         // Draw trash can outline
         g2d.drawRect(3, 2, 14, 2);  // Top of trash can
@@ -1104,7 +1102,7 @@ public class clientSideCart extends JPanel {
     }
 
 
-    private void clearCart() {
+    public void clearCart() {
     	  clientOrders.clear();
     	  refreshAddToCart();
 
@@ -1134,9 +1132,11 @@ public class clientSideCart extends JPanel {
                 // Update UI components safely on EDT
                 SwingUtilities.invokeLater(() -> {
                     // Remove old action listeners
-                    for (ActionListener al : buyButton.getActionListeners()) {
-                        buyButton.removeActionListener(al);
-                    }
+                	if (buyButton != null) {
+                	    for (ActionListener al : buyButton.getActionListeners()) {
+                	        buyButton.removeActionListener(al);
+                	    }
+                	}
 
                     // Add appropriate listener
                     if (currentTotal == 0.0) {
@@ -1148,7 +1148,7 @@ public class clientSideCart extends JPanel {
                     	StringBuilder message = new StringBuilder(
                     		    "<html><body style='font-family: \"Segoe UI\", Tahoma, Geneva, Verdana, sans-serif; color: #2c3e50; padding: 24px; border-radius: 12px; background-color: #f9f9f9;'>"
                     		);
-                    		message.append("<h2 style='color: #27ae60; margin-bottom: 20px;'>")
+                    		message.append("<h2 style='color: #123458; margin-bottom: 20px;'>")
                     		       .append("Your Order Summary</h2>");
 
                     		for (ClientOrders order : clientOrders) {
@@ -1182,10 +1182,10 @@ public class clientSideCart extends JPanel {
                     		           .append("</div>");
                     		}
 
-                    		message.append("<hr style='border: none; border-top: 2px dashed #27ae60; margin: 30px 0;'>")
+                    		message.append("<hr style='border: none; border-top: 2px dashed #123458; margin: 30px 0;'>")
                     		       .append("<p style='font-size: 18px;'><strong>")
 
-                    		       .append("Total Amount:</strong> <span style='color: #27ae60;'>Php ")
+                    		       .append("Total Amount:</strong> <span style='color: #123458;'>Php ")
                     		       .append(String.format("%.2f", currentTotal))
                     		       .append("</span></p>");
                     		message.append("</body></html>");
@@ -1280,75 +1280,64 @@ public class clientSideCart extends JPanel {
                     	    if (result == JOptionPane.YES_OPTION) {
 
 
-                    	    /*	String insertQuery = "INSERT INTO orders (orderSummary) VALUES (?)";
+                    	    	String insertQuery = "INSERT INTO orders (orderSummary) VALUES (?)";
+                    	    	final int[] orderIdHolder = new int[1]; // Use an array to hold the value
 
                     	    	try (Connection conn = dbCon.getConnection();
-                    	    	     PreparedStatement pstmt = conn.prepareStatement(insertQuery)) {
+                    	    	     PreparedStatement pstmt = conn.prepareStatement(insertQuery, Statement.RETURN_GENERATED_KEYS)) {
 
                     	    	    pstmt.setString(1, jsonString.toString()); // Convert StringBuilder to String
                     	    	    pstmt.executeUpdate();
 
-                    	    	    System.out.println("Order inserted successfully.");
+                    	    	    try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
+                    	    	        if (generatedKeys.next()) {
+                    	    	            orderIdHolder[0] = generatedKeys.getInt(1); // store ID in array
+                    	    	            System.out.println("Order inserted successfully. Generated Order ID: " + orderIdHolder[0]);
+                    	    	        } else {
+                    	    	            System.out.println("Order inserted, but no ID was returned.");
+                    	    	        }
+                    	    	    }
 
                     	    	} catch (SQLException error) {
-                    	    		error.printStackTrace();
-                    	    	}*/
+                    	    	    error.printStackTrace();
+                    	    	}
+
+                    	    	JPanel loadingPanel = new loadingRotate();
+                    	    	loadingPanel.setPreferredSize(new Dimension(300, 150));
+
+                    	    	// Show loading animation immediately
+                    	    	Welcome.getWelcomeFrame().getContentPane().removeAll();
+                    	    	Welcome.getWelcomeFrame().getContentPane().add(loadingPanel, BorderLayout.CENTER);
+                    	    	Welcome.getWelcomeFrame().revalidate();
+                    	    	Welcome.getWelcomeFrame().repaint();
+
+                    	    	SwingWorker<JPanel, Void> worker = new SwingWorker<>() {
+                    	    	    @Override
+                    	    	    protected JPanel doInBackground() throws Exception {
+                    	    	        Thread.sleep(1000); // Simulated work
+                    	    	        return new ThankYouScreen(orderIdHolder[0]); // Build in background
+                    	    	    }
+
+                    	    	    @Override
+                    	    	    protected void done() {
+                    	    	        try {
+                    	    	            JPanel thankYouPanel = get(); // Retrieve the prepared panel
+                    	    	            Welcome.getWelcomeFrame().getContentPane().removeAll();
+                    	    	            Welcome.getWelcomeFrame().getContentPane().add(thankYouPanel, BorderLayout.CENTER);
+                    	    	            Welcome.getWelcomeFrame().revalidate();
+                    	    	            Welcome.getWelcomeFrame().repaint();
+                    	    	        } catch (Exception ex) {
+                    	    	            ex.printStackTrace();
+                    	    	            // Optionally handle errors and show a fallback/error panel
+                    	    	        }
+                    	    	    }
+                    	    	};
+
+                    	    	worker.execute(); // Start the worker
 
 
 
-                    	        JPanel loadingPanel = new loadingRotate();
-
-                    	        loadingPanel.setPreferredSize(new Dimension(300, 150));
-
-
-
-                            	Welcome.getWelcomeFrame().getContentPane().removeAll();
-                             	Welcome.getWelcomeFrame().getContentPane().add(loadingPanel, BorderLayout.CENTER);
-                             	Welcome.getWelcomeFrame().revalidate();
-                             	Welcome.getWelcomeFrame().repaint();
-
-                            	SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
-                            	    @Override
-                            	    protected Void doInBackground() throws Exception {
-                            	        // Simulate loading time (optional)
-                            	        Thread.sleep(1000); // remove this if not needed
-
-                            	        return null;
-                            	    }
-
-                            	    @Override
-                            	    protected void done() {
-                            	     	Welcome.getWelcomeFrame().getContentPane().removeAll();
-                            	     	Welcome.getWelcomeFrame().getContentPane().add(new ThankYouScreen(1));
-                            	     	Welcome.getWelcomeFrame().revalidate();
-                            	     	Welcome.getWelcomeFrame().repaint();
-                            	    }
-
-
-                            	};
-                            	worker.execute();  // Start the worker
-
-
-                    	    } else {
-
-
-
-
-
-                                // Create a custom icon
-                                ImageIcon customIcon = createCustomIcon();
-                                // Show the custom message dialog
-                                JOptionPane.showMessageDialog(
-                                    null,
-                                    "Purchase canceled.",
-                                    "Notification",
-                                    JOptionPane.INFORMATION_MESSAGE,
-                                    customIcon
-                                );
-
-
-
-                    	    }
+                    	    } 
 
                     	});
 
@@ -1375,41 +1364,7 @@ public class clientSideCart extends JPanel {
         worker.execute();  // Start background task
     }
 
-    public static ImageIcon createCustomIcon() {
-        // Define icon size
-        int width = 50;
-        int height = 50;
-
-        // Create a BufferedImage to draw on
-        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-
-        // Get the Graphics2D object to draw on the image
-        Graphics2D g = image.createGraphics();
-
-        // Set anti-aliasing for smooth drawing
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-        // Fill the background with a color (e.g., light blue)
-        g.setColor(new Color(173, 216, 230)); // Light blue color
-        g.fillOval(0, 0, width, height); // Draw the circle
-
-        // Draw a red "X" symbol in the middle
-        g.setColor(Color.RED);
-        g.setStroke(new BasicStroke(3)); // Set thicker line for the "X"
-        g.drawLine(10, 10, 40, 40); // First diagonal line
-        g.drawLine(10, 40, 40, 10); // Second diagonal line
-
-        // Dispose of graphics object
-        g.dispose();
-
-        // Return the image as an ImageIcon
-        return new ImageIcon(image);
-    }
-
-
-
-
-
+    
    //Refresh the page if theres a changes
     public  void refreshProductPanel() {
         productPanelCenter.removeAll(); // Clear existing products
@@ -1423,16 +1378,6 @@ public class clientSideCart extends JPanel {
     }
 
 
-
-
-    /* public static void main(String[] args) {
-
-
-
-    	 clientSideCart milkTeaShop = new clientSideCart();
-        AddProductConsole addProductConsole = new AddProductConsole(milkTeaShop);
-        addProductConsole.addProduct();
-    } */
 }
 
 

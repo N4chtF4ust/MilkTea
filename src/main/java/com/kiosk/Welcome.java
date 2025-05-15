@@ -31,6 +31,7 @@ import javax.swing.WindowConstants;
 
 import com.kiosk.Model.AddOns;
 import com.kiosk.Model.Product;
+import com.kiosk.cache_image.GetCachedImagePath;
 import com.kiosk.dbConnection.dbCon;
 import com.kiosk.loading.loadingRotate;
 
@@ -44,7 +45,7 @@ public class Welcome {
     // === Constructor ===
     public Welcome() {
         // Frame setup
-        WelcomeFrame = new JFrame("Welcome To Milktea Shop");
+        WelcomeFrame = new JFrame("Milkte Kiosk");
         WelcomeFrame.setSize(900, 600);
         WelcomeFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         WelcomeFrame.setLocationRelativeTo(null);
@@ -89,28 +90,36 @@ public class Welcome {
                 String selectedOption = (String) WelcomeComboBox.getSelectedItem();
                 showLoadingScreen();
 
-                SwingWorker<Void, Void> worker = new SwingWorker<>() {
+                SwingWorker<JPanel, Void> worker = new SwingWorker<>() {
                     @Override
-                    protected Void doInBackground() throws Exception {
-                        Thread.sleep(1000); // Simulated delay, replace with actual work in production
-                        return null;
+                    protected JPanel doInBackground() throws Exception {
+                        Thread.sleep(1000); // Simulated delay
+                        if ("Client".equals(selectedOption)) {
+                            return new clientSideCart();
+                        } else if ("Admin".equals(selectedOption)) {
+                            return new Login(WelcomeFrame);
+                        }
+                        return new JPanel(); // Fallback
                     }
 
                     @Override
                     protected void done() {
-                        WelcomeFrame.getContentPane().removeAll();
-                        if ("Client".equals(selectedOption)) {
-                            WelcomeFrame.getContentPane().add(new clientSideCart());
-                        } else if ("Admin".equals(selectedOption)) {
-                            WelcomeFrame.getContentPane().add(new Login(WelcomeFrame));
+                        try {
+                            JPanel nextPanel = get(); // This won't block — already done
+                            WelcomeFrame.getContentPane().removeAll();
+                            WelcomeFrame.getContentPane().add(nextPanel);
+                            WelcomeFrame.revalidate();
+                            WelcomeFrame.repaint();
+                        } catch (Exception ex) {
+                            ex.printStackTrace(); // handle error
                         }
-                        WelcomeFrame.revalidate();
-                        WelcomeFrame.repaint();
                     }
                 };
+
                 worker.execute();
             }
         });
+
 
         // Add components to panel
         gbc.gridx = 0;
@@ -140,10 +149,7 @@ public class Welcome {
         WelcomeFrame.repaint();
     }
 
-    // === Getter for WelcomeFrame ===
-    public static JFrame getWelcomeFrame() {
-        return WelcomeFrame;
-    }
+
 
 
 
@@ -163,6 +169,7 @@ public class Welcome {
                 boolean availability = rs.getBoolean("availability");
 
                 clientSideCart.products.add(new Product(id, productName, small, medium, large, img, availability));
+                GetCachedImagePath.cachedFileNames.add(img);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -188,10 +195,15 @@ public class Welcome {
     }
 
     // === Main Method ===
-    public static void main(String[] args) {
+    public static void main(String[] args)  {
 
         loadProducts();
         loadAddOns();
         new Welcome();
+    }
+    
+    // === Getter for WelcomeFrame ===
+    public static JFrame getWelcomeFrame() {
+        return WelcomeFrame;
     }
 }

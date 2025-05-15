@@ -91,39 +91,53 @@ public class ThankYouScreen extends JPanel {
         loadingPanel.setPreferredSize(new Dimension(300, 150));
 
 
-        // Setting up the frame and adding the loading panel
+     // Setting up the frame and adding the loading panel
         JFrame frame = Welcome.getWelcomeFrame();
         Container contentPane = frame.getContentPane();
+
         contentPane.removeAll();
         contentPane.add(loadingPanel, BorderLayout.CENTER);
-
         frame.revalidate();
         frame.repaint();
 
-        // Background loading task (simulate loading)
-        SwingWorker<Void, Void> worker = new SwingWorker<>() {
+        // Background loading task
+        SwingWorker<JPanel, Void> worker = new SwingWorker<>() {
             @Override
-            protected Void doInBackground() throws Exception {
-                Thread.sleep(1000); // Simulate loading
-                return null;
+            protected JPanel doInBackground() throws Exception {
+                Thread.sleep(1000); // Simulate work
+
+                // Clear static/shared resources if needed
+                clientSideCart.cartPanel.removeAll();
+                clientSideCart.cartPanelCenter.removeAll();
+                clientSideCart.productPanel.removeAll();
+                clientSideCart.productPanelCenter.removeAll();
+                clientSideCart.clientOrders.clear();
+
+                // Build the new panel (off the EDT)
+                return new clientSideCart();
             }
 
             @Override
             protected void done() {
-                SwingUtilities.invokeLater(() -> {
-                    contentPane.removeAll();
-                    clientSideCart.cartPanel.removeAll();
-                    clientSideCart.cartPanelCenter.removeAll();
-                    clientSideCart.productPanel.removeAll();
-                    clientSideCart.productPanelCenter.removeAll();
+                try {
+                    JPanel cartPanel = get(); // Retrieve built panel
 
-                    contentPane.add(new clientSideCart());
-                    contentPane.revalidate();
-                    contentPane.repaint();
-                });
+                    SwingUtilities.invokeLater(() -> {
+                        contentPane.removeAll();
+                        contentPane.add(cartPanel, BorderLayout.CENTER);
+                 
+                        contentPane.revalidate();
+                        contentPane.repaint();
+                    });
+
+                } catch (Exception ex) {
+                    ex.printStackTrace(); // Optional: show error panel instead
+                }
             }
         };
-        worker.execute();
+
+        worker.execute(); // Start worker
+
     }
 
 
