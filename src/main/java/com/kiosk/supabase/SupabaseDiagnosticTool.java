@@ -1,20 +1,40 @@
 package com.kiosk.supabase;
 
-import okhttp3.*;
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import io.github.cdimascio.dotenv.Dotenv;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
 public class SupabaseDiagnosticTool extends JFrame {
     // Supabase credentials from your original code
-    private static final String SUPABASE_URL = "https://dlqppooqnrnvpbcbeylc.supabase.co";
-    private static final String SUPABASE_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRscXBwb29xbnJudnBiY2JleWxjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NDYyMjA2MCwiZXhwIjoyMDYwMTk4MDYwfQ.ny5C-jq6BaTZZzZ4bAW8LxOXQjwynB7TPAX5DU2efgM";
-    private static final String BUCKET_NAME = "milktea-image";
+
+
+	Dotenv dotenv = Dotenv.load();
+
+	private  final String SUPABASE_URL = dotenv.get("SUPABASE_URL");
+	private  final String SUPABASE_API_KEY = dotenv.get("SUPABASE_API_KEY");
+	private  final String BUCKET_NAME = dotenv.get("SUPABASE_BUCKET_NAME");
 
     // Configure OkHttpClient with longer timeouts
     private final OkHttpClient client = new OkHttpClient.Builder()
@@ -34,68 +54,68 @@ public class SupabaseDiagnosticTool extends JFrame {
         setTitle("Supabase Storage Diagnostic Tool");
         setSize(800, 600);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        
+
         // Main layout
         setLayout(new BorderLayout());
-        
+
         // Top panel for connection and bucket inputs
         JPanel topPanel = new JPanel(new BorderLayout());
-        
+
         // Connection info panel
         JPanel connectionPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         connectionPanel.add(new JLabel("Supabase URL:"));
         JTextField urlField = new JTextField(SUPABASE_URL, 30);
         urlField.setEditable(false);
         connectionPanel.add(urlField);
-        
+
         testConnectionButton = new JButton("Test Connection");
         connectionPanel.add(testConnectionButton);
         topPanel.add(connectionPanel, BorderLayout.NORTH);
-        
+
         // Bucket panel
         JPanel bucketPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         bucketPanel.add(new JLabel("Bucket Name:"));
         bucketNameField = new JTextField(BUCKET_NAME, 20);
         bucketPanel.add(bucketNameField);
-        
+
         testBucketButton = new JButton("Test Bucket Access");
         bucketPanel.add(testBucketButton);
-        
+
         listBucketsButton = new JButton("List All Buckets");
         bucketPanel.add(listBucketsButton);
-        
+
         createBucketButton = new JButton("Create Bucket");
         bucketPanel.add(createBucketButton);
-        
+
         topPanel.add(bucketPanel, BorderLayout.CENTER);
-        
+
         add(topPanel, BorderLayout.NORTH);
-        
+
         // Log area
         logArea = new JTextArea();
         logArea.setEditable(false);
         logArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
         JScrollPane scrollPane = new JScrollPane(logArea);
         add(scrollPane, BorderLayout.CENTER);
-        
+
         // Setup button actions
         setupActions();
-        
+
         // Initial log message
-        log("Diagnostic tool started. API Key (first 10 chars): " + 
+        log("Diagnostic tool started. API Key (first 10 chars): " +
             SUPABASE_API_KEY.substring(0, 10) + "...");
     }
-    
+
     private void setupActions() {
         testConnectionButton.addActionListener(this::testConnection);
         listBucketsButton.addActionListener(this::listBuckets);
         testBucketButton.addActionListener(this::testBucket);
         createBucketButton.addActionListener(this::createBucket);
     }
-    
+
     private void testConnection(ActionEvent e) {
         log("\n--- Testing Connection to Supabase ---");
-        
+
         new Thread(() -> {
             try {
                 // Test basic connectivity
@@ -108,14 +128,14 @@ public class SupabaseDiagnosticTool extends JFrame {
 
                 try (Response response = client.newCall(request).execute()) {
                     log("Connection Response: " + response.code() + " " + response.message());
-                    
+
                     if (response.isSuccessful()) {
                         log("✓ Connection successful!");
                     } else {
                         String responseBody = response.body() != null ? response.body().string() : "No response body";
                         log("⚠ Connection failed. Response body:");
                         log(responseBody);
-                        
+
                         // Check for common error types
                         if (response.code() == 401 || response.code() == 403) {
                             log("⚠ AUTHENTICATION ERROR: Your API key may be invalid or expired.");
@@ -130,10 +150,10 @@ public class SupabaseDiagnosticTool extends JFrame {
             }
         }).start();
     }
-    
+
     private void listBuckets(ActionEvent e) {
         log("\n--- Listing All Buckets ---");
-        
+
         new Thread(() -> {
             try {
                 Request request = new Request.Builder()
@@ -145,20 +165,20 @@ public class SupabaseDiagnosticTool extends JFrame {
 
                 try (Response response = client.newCall(request).execute()) {
                     log("Response: " + response.code() + " " + response.message());
-                    
+
                     if (response.isSuccessful() && response.body() != null) {
                         String responseBody = response.body().string();
                         log("Available buckets:");
-                        
+
                         JSONArray buckets = new JSONArray(responseBody);
                         if (buckets.length() == 0) {
                             log("No buckets found in this project.");
                         }
-                        
+
                         for (int i = 0; i < buckets.length(); i++) {
                             JSONObject bucket = buckets.getJSONObject(i);
                             String publicStatus;
-                            
+
                             // Check the type of "public" and handle accordingly
                             if (bucket.get("public") instanceof Boolean) {
                                 publicStatus = Boolean.toString(bucket.getBoolean("public"));
@@ -166,7 +186,7 @@ public class SupabaseDiagnosticTool extends JFrame {
                                 publicStatus = bucket.getString("public");  // Fallback to string if it's already a string
                             }
 
-                            log(" - " + bucket.getString("name") + 
+                            log(" - " + bucket.getString("name") +
                                 " (ID: " + bucket.getString("id") + ", " +
                                 "Public: " + publicStatus + ")");
                         }
@@ -183,7 +203,7 @@ public class SupabaseDiagnosticTool extends JFrame {
         }).start();
     }
 
-    
+
     private void testBucket(ActionEvent e) {
         String bucketName = bucketNameField.getText().trim();
         log("\n--- Testing Access to Bucket: " + bucketName + " ---");
@@ -296,17 +316,17 @@ public class SupabaseDiagnosticTool extends JFrame {
                                 .put("public", false)  // Set the bucket to private initially
                                 .toString()
                 );
-                
+
                 Request createRequest = new Request.Builder()
                         .url(SUPABASE_URL + "/storage/v1/bucket")
                         .addHeader("apikey", SUPABASE_API_KEY)
                         .addHeader("Authorization", "Bearer " + SUPABASE_API_KEY)
                         .post(body)
                         .build();
-                
+
                 try (Response createResponse = client.newCall(createRequest).execute()) {
                     log("Create Bucket Response: " + createResponse.code() + " " + createResponse.message());
-                    
+
                     if (createResponse.isSuccessful()) {
                         log("✓ Bucket created successfully.");
                     } else {

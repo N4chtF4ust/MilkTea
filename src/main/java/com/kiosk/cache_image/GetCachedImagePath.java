@@ -4,7 +4,9 @@ package com.kiosk.cache_image;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.json.JSONObject;
 
@@ -16,13 +18,10 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-import java.util.HashSet;
-import java.util.Set;
-
 public class GetCachedImagePath {
-	
+
     public static Set<String> cachedFileNames  = new HashSet<>();
-    
+
 
     public static String getCachedImagePath(String fileName) {
         // 1. Validate input

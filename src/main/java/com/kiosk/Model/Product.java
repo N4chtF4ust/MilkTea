@@ -1,5 +1,7 @@
 package com.kiosk.Model;
 
+import java.util.Objects;
+
 public class Product {
     int id;
     String productName;
@@ -47,5 +49,22 @@ public class Product {
         return availability;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Product)) return false;
+        Product product = (Product) o;
+        return id == product.id &&
+               Double.compare(product.small, small) == 0 &&
+               Double.compare(product.medium, medium) == 0 &&
+               Double.compare(product.large, large) == 0 &&
+               availability == product.availability &&
+               Objects.equals(productName, product.productName) &&
+               Objects.equals(img, product.img);
+    }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, productName, small, medium, large, img, availability);
+    }
 }
