@@ -30,6 +30,7 @@ import javax.swing.WindowConstants;
 
 import com.kiosk.Model.AddOns;
 import com.kiosk.Model.Product;
+import com.kiosk.admin.AdminDashboard;
 import com.kiosk.cache_image.GetCachedImagePath;
 import com.kiosk.client.ClientSideCart;
 import com.kiosk.dbConnection.dbCon;
@@ -58,8 +59,6 @@ public class Welcome {
         } else {
             System.err.println("Icon not found: " + iconURL);
         }
-
-
 
 
 
@@ -129,7 +128,8 @@ public class Welcome {
                     if ("Client".equals(selectedOption)) {
                         return new ClientSideCart();
                     } else if ("Admin".equals(selectedOption)) {
-                        return new Login(WelcomeFrame);
+                        //return new Login(WelcomeFrame);
+                    	return new AdminDashboard();
                     }
                     return new JPanel(); // fallback
                 }
