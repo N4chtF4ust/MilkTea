@@ -13,7 +13,7 @@ public class AdminSettings extends JPanel {
         setLayout(new BorderLayout());
         setBackground(new Color(217, 217, 217));
 
-        // ⬆️ Move topPanel to this panel's NORTH
+        // Top Panel
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setOpaque(false);
         topPanel.setBorder(BorderFactory.createEmptyBorder(40, 80, 10, 50));
@@ -28,13 +28,13 @@ public class AdminSettings extends JPanel {
         profileLabel.setForeground(new Color(18, 52, 88));
         topPanel.add(profileLabel, BorderLayout.EAST);
 
-        add(topPanel, BorderLayout.NORTH); // 👈 Add here like Dashboard
+        add(topPanel, BorderLayout.NORTH);
 
         // Settings Card Panel
         JPanel settingsCard = new JPanel(new GridBagLayout());
         settingsCard.setBackground(Color.WHITE);
         settingsCard.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(200, 200, 220), 1),
+                BorderFactory.createLineBorder(new Color(18, 52, 88), 5), 
                 BorderFactory.createEmptyBorder(20, 30, 20, 30)
         ));
 
@@ -110,19 +110,17 @@ public class AdminSettings extends JPanel {
         });
 
         JPanel centerWrapper = new JPanel(new GridBagLayout());
-        centerWrapper.setBackground(new Color(217, 217, 217)); // Same as main bg
+        centerWrapper.setBackground(new Color(217, 217, 217));
         GridBagConstraints centerGbc = new GridBagConstraints();
         centerGbc.gridx = 0;
         centerGbc.gridy = 0;
         centerWrapper.add(settingsCard, centerGbc);
 
-        // Optional: Adjust the size of settingsCard
-        settingsCard.setPreferredSize(new Dimension(900, 600)); // You can tweak these
+        settingsCard.setPreferredSize(new Dimension(900, 600));
 
-        // Padding around the white card
         JPanel paddedPanel = new JPanel(new BorderLayout());
-        paddedPanel.setBorder(BorderFactory.createEmptyBorder(20, 80, 60, 80)); 
-        paddedPanel.setOpaque(false); 
+        paddedPanel.setBorder(BorderFactory.createEmptyBorder(20, 80, 60, 80));
+        paddedPanel.setOpaque(false);
         paddedPanel.add(centerWrapper, BorderLayout.CENTER);
 
         add(paddedPanel, BorderLayout.CENTER);
