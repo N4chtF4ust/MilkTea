@@ -1,4 +1,4 @@
-package com.kiosk.admin;
+/*package com.kiosk.admin;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -137,4 +137,4 @@ public class AdminProducts extends JFrame {
         AdminProducts page = new AdminProducts();
         page.setVisible(true);
     }
-}
+}  */

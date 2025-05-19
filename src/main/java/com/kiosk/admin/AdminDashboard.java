@@ -1,93 +1,37 @@
+
 package com.kiosk.admin;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.GridLayout;
-import java.awt.Image;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.net.URL;
-
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.SwingConstants;
+import javax.swing.*;
 
 public class AdminDashboard extends JPanel {
+    private JPanel mainPanel;
+    private CardLayout cardLayout;
+
     public AdminDashboard() {
         setLayout(new BorderLayout());
 
         JPanel sidebar = createSidebar();
         add(sidebar, BorderLayout.WEST);
 
-        JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.setBackground(new Color(217, 217, 217)); // #D9D9D9
+        cardLayout = new CardLayout();
+        mainPanel = new JPanel(cardLayout);
 
-        JPanel topPanel = new JPanel(new BorderLayout());
-        topPanel.setOpaque(false);
-        topPanel.setBorder(BorderFactory.createEmptyBorder(40, 80, 10, 50));
+        mainPanel.add(createDashboardPanel(), "Dashboard");
+        mainPanel.add(ProductsPanelFlavors.ProductsPanelFlavors(this), "Products");
+        mainPanel.add(ProductsPanelAddOns.ProductsPanelAddOns(this), "AddOns"); // Ensure this exists
+        mainPanel.add(createPlaceholderPanel("Orders Panel"), "Orders");
+        mainPanel.add(createPlaceholderPanel("Settings Panel"), "Settings");
 
-        JLabel titleLabel = new JLabel("Dashboard");
-        titleLabel.setFont(new Font("SansSerif", Font.PLAIN, 24));
-        titleLabel.setForeground(new Color(18, 52, 88));
-        topPanel.add(titleLabel, BorderLayout.WEST);
-
-        JLabel profileLabel = new JLabel("👤 Admin");
-        profileLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        profileLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-        profileLabel.setForeground(new Color(18, 52, 88));
-        topPanel.add(profileLabel, BorderLayout.EAST);
-
-        mainPanel.add(topPanel, BorderLayout.NORTH);
-
-        JPanel cardsPanel = new JPanel(new GridLayout(2, 2, 40, 40));
-        cardsPanel.setBorder(BorderFactory.createEmptyBorder(10, 100, 80, 100));
-        cardsPanel.setOpaque(false);
-
-        String[] cardTitles = {"Total Sales", "Completed Orders", "Pending Orders", "Best Seller"};
-        String[] cardValues = {"PHP 50,000", "500", "9", "Wintermelon"};
-
-        for (int i = 0; i < cardTitles.length; i++) {
-            JPanel card = new JPanel();
-            card.setBackground(Color.WHITE);
-            card.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(new Color(200, 200, 220), 1),
-                    BorderFactory.createEmptyBorder(20, 20, 20, 20)
-            ));
-            card.setLayout(new BorderLayout());
-
-            JPanel innerPanel = new JPanel();
-            innerPanel.setLayout(new BoxLayout(innerPanel, BoxLayout.Y_AXIS));
-            innerPanel.setOpaque(false);
-
-            JLabel cardLabel = new JLabel(cardTitles[i]);
-            cardLabel.setFont(new Font("SansSerif", Font.BOLD, 20));
-            cardLabel.setForeground(new Color(11, 56, 95));
-
-            JLabel valueLabel = new JLabel(cardValues[i]);
-            valueLabel.setFont(new Font("SansSerif", Font.PLAIN, 24));
-            valueLabel.setForeground(new Color(40, 40, 40));
-            valueLabel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
-
-            innerPanel.add(cardLabel);
-            innerPanel.add(valueLabel);
-
-            card.add(innerPanel, BorderLayout.NORTH);
-            cardsPanel.add(card);
-        }
-
-        mainPanel.add(cardsPanel, BorderLayout.CENTER);
         add(mainPanel, BorderLayout.CENTER);
     }
 
     private JPanel createSidebar() {
         JPanel sidebar = new JPanel();
-        sidebar.setBackground(new Color(18, 52, 88)); // #123458
+        sidebar.setBackground(new Color(18, 52, 88));
         sidebar.setPreferredSize(new Dimension(200, 0));
         sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
 
@@ -110,6 +54,7 @@ public class AdminDashboard extends JPanel {
         };
 
         for (int i = 0; i < navItems.length; i++) {
+            String item = navItems[i];
             ImageIcon icon = null;
             URL iconURL = getClass().getResource(iconPaths[i]);
 
@@ -119,7 +64,7 @@ public class AdminDashboard extends JPanel {
                 icon = new ImageIcon(img);
             }
 
-            JButton btn = new JButton(navItems[i], icon);
+            JButton btn = new JButton(item, icon);
             btn.setMaximumSize(new Dimension(180, 40));
             btn.setAlignmentX(Component.CENTER_ALIGNMENT);
             btn.setFocusPainted(false);
@@ -129,9 +74,102 @@ public class AdminDashboard extends JPanel {
             btn.setHorizontalAlignment(SwingConstants.LEFT);
             btn.setIconTextGap(10);
 
+            btn.addActionListener(e -> {
+                if (item.equals("Logout")) {
+                    LogoutDialog.showLogoutDialog((JFrame) SwingUtilities.getWindowAncestor(this), () -> {
+                        System.exit(0);
+                    });
+                } else {
+                    cardLayout.show(mainPanel, item);
+                }
+            });
+
             sidebar.add(btn);
         }
 
         return sidebar;
     }
+
+    private JPanel createDashboardPanel() {
+        JPanel dashboard = new JPanel(new BorderLayout());
+        dashboard.setBackground(new Color(217, 217, 217));
+
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setOpaque(false);
+        topPanel.setBorder(BorderFactory.createEmptyBorder(40, 80, 10, 50));
+
+        JLabel titleLabel = new JLabel("Dashboard");
+        titleLabel.setFont(new Font("SansSerif", Font.PLAIN, 24));
+        titleLabel.setForeground(new Color(18, 52, 88));
+        topPanel.add(titleLabel, BorderLayout.WEST);
+
+        JLabel profileLabel = new JLabel("👤 Admin");
+        profileLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        profileLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        profileLabel.setForeground(new Color(18, 52, 88));
+        topPanel.add(profileLabel, BorderLayout.EAST);
+
+        dashboard.add(topPanel, BorderLayout.NORTH);
+
+        JPanel cardsPanel = new JPanel(new GridLayout(2, 2, 40, 40));
+        cardsPanel.setBorder(BorderFactory.createEmptyBorder(10, 100, 80, 100));
+        cardsPanel.setOpaque(false);
+
+        String[] cardTitles = {"Total Sales", "Completed Orders", "Pending Orders", "Best Seller"};
+        String[] cardValues = {"PHP 50,000", "500", "9", "Wintermelon"};
+
+        for (int i = 0; i < cardTitles.length; i++) {
+            JPanel card = new JPanel();
+            card.setBackground(Color.WHITE);
+            card.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(new Color(200, 200, 220), 1),
+                    BorderFactory.createEmptyBorder(20, 20, 20, 20)
+            ));
+            card.setLayout(new BorderLayout());
+
+            // Title at the top
+            JLabel cardLabel = new JLabel(cardTitles[i], SwingConstants.CENTER);
+            cardLabel.setFont(new Font("SansSerif", Font.BOLD, 20));
+            cardLabel.setForeground(new Color(11, 56, 95));
+            cardLabel.setHorizontalAlignment(SwingConstants.CENTER);
+            card.add(cardLabel, BorderLayout.NORTH);
+
+            // Center value using Box and vertical glue
+            JLabel valueLabel = new JLabel(cardValues[i], SwingConstants.CENTER);
+            valueLabel.setFont(new Font("SansSerif", Font.PLAIN, 24));
+            valueLabel.setForeground(new Color(40, 40, 40));
+            valueLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+            JPanel centerPanel = new JPanel();
+            centerPanel.setOpaque(false);
+            centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
+            centerPanel.add(Box.createVerticalGlue());
+            centerPanel.add(valueLabel);
+            centerPanel.add(Box.createVerticalGlue());
+
+            card.add(centerPanel, BorderLayout.CENTER);
+
+            cardsPanel.add(card);
+        }
+
+
+        dashboard.add(cardsPanel, BorderLayout.CENTER);
+        return dashboard;
+    }
+
+    private JPanel createPlaceholderPanel(String label) {
+        JPanel placeholder = new JPanel(new BorderLayout());
+        placeholder.setBackground(Color.WHITE);
+        JLabel message = new JLabel(label + " is under construction", SwingConstants.CENTER);
+        message.setFont(new Font("SansSerif", Font.BOLD, 20));
+        message.setForeground(new Color(100, 100, 100));
+        placeholder.add(message, BorderLayout.CENTER);
+        return placeholder;
+    }
+
+    public void showPanel(String name) {
+        cardLayout.show(mainPanel, name);
+    }
 }
+
+
