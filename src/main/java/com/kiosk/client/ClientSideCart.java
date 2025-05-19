@@ -1016,9 +1016,10 @@ public class ClientSideCart extends JPanel {
         int[] orderIdHolder = new int[1];
 
         try (Connection conn = dbCon.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement("INSERT INTO orders (orderSummary) VALUES (?)", Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement pstmt = conn.prepareStatement("INSERT INTO orders (orderSummary, total) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS)) {
 
             pstmt.setString(1, jsonSummary);
+            pstmt.setDouble(2, currentTotal);
             pstmt.executeUpdate();
 
             try (ResultSet keys = pstmt.getGeneratedKeys()) {

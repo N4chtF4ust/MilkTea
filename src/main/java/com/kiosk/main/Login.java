@@ -1,139 +1,278 @@
 package com.kiosk.main;
-import java.awt.Color;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+
+import java.awt.*;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JPasswordField;
-import javax.swing.JTextField;
-import javax.swing.SwingConstants;
-import javax.swing.SwingWorker;
+import javax.swing.*;
+
+import com.kiosk.admin.AdminDashboard;
 
 public class Login extends JPanel {
-    public Login(JFrame parentFrame) {
-    	parentFrame.getContentPane().setBackground(new Color(15, 23, 42)); // Dark navy background
-        setPreferredSize(new Dimension(500, 450));
-        setBackground(new Color(209, 213, 219)); // Light gray panel
-        setLayout(new GridBagLayout());
-        setBorder(BorderFactory.createLineBorder(new Color(55, 65, 81), 2)); // Dark border
+    private final Color PRIMARY_DARK = new Color(18, 52, 88);    // Dark blue
+    private final Color PRIMARY_LIGHT = new Color(217, 217, 217); // Light gray
 
+    private boolean passwordVisible = false;
+    private final String EYE_OPEN_ICON = "/icon/eye-fill.png";   // path in resources
+    private final String EYE_CLOSED_ICON = "/icon/eye-close.png";
+
+    public Login(JFrame parentFrame) {
+        setOpaque(false);
+        setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
+
+        // Title Label
+        JLabel titleLabel = new JLabel("Anjo MilkTea");
+        titleLabel.setFont(new Font("Arial Rounded MT Bold", Font.BOLD, 32));
+        titleLabel.setForeground(PRIMARY_DARK);
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.gridwidth = 2;
-
-        JLabel welcomeLabel = new JLabel("Welcome to Anjo Milktea");
-        welcomeLabel.setFont(new Font("Helvetica", Font.BOLD, 20));
-        welcomeLabel.setForeground(new Color(37, 99, 235));
-        welcomeLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        gbc.gridy++;
-        add(welcomeLabel, gbc);
-
-        JLabel titleLabel = new JLabel("USER LOGIN");
-        titleLabel.setFont(new Font("Helvetica", Font.BOLD, 30));
-        titleLabel.setForeground(new Color(15, 23, 42));
-        gbc.gridy++;
+        gbc.insets = new Insets(20, 0, 5, 0);
         add(titleLabel, gbc);
 
-        gbc.gridy++;
-        gbc.gridwidth = 2;
-        gbc.anchor = GridBagConstraints.WEST;
+        // Subtitle
+        JLabel subtitleLabel = new JLabel("Admin Dashboard");
+        subtitleLabel.setFont(new Font("Segoe UI", Font.ITALIC, 18));
+        subtitleLabel.setForeground(new Color(PRIMARY_DARK.getRed(),
+                PRIMARY_DARK.getGreen(),
+                PRIMARY_DARK.getBlue(), 180));
+        gbc.gridy = 1;
+        gbc.insets = new Insets(0, 0, 10, 0);
+        add(subtitleLabel, gbc);
+
+        JPanel loginPanel = new JPanel();
+        loginPanel.setOpaque(false);
+        loginPanel.setLayout(new GridBagLayout());
+
+        GridBagConstraints innerGbc = new GridBagConstraints();
+        innerGbc.fill = GridBagConstraints.HORIZONTAL;
+        innerGbc.weightx = 1.0;
+
         JLabel userLabel = new JLabel("Username");
-        add(userLabel, gbc);
+        userLabel.setForeground(PRIMARY_DARK);
+        userLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        innerGbc.gridx = 0;
+        innerGbc.gridy = 0;
+        innerGbc.anchor = GridBagConstraints.WEST;
+        innerGbc.insets = new Insets(15, 15, 5, 15);
+        loginPanel.add(userLabel, innerGbc);
 
-        gbc.gridy++;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        JTextField userText = new JTextField(15);
-        add(userText, gbc);
+        JTextField userText = createStyledTextField();
+        innerGbc.gridy = 1;
+        innerGbc.insets = new Insets(0, 15, 15, 15);
+        loginPanel.add(userText, innerGbc);
 
-        gbc.gridy++;
-        gbc.anchor = GridBagConstraints.WEST;
         JLabel passLabel = new JLabel("Password");
-        add(passLabel, gbc);
+        passLabel.setForeground(PRIMARY_DARK);
+        passLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        innerGbc.gridy = 2;
+        innerGbc.insets = new Insets(0, 15, 5, 15);
+        loginPanel.add(passLabel, innerGbc);
 
-        gbc.gridy++;
+        // Password field and eye icon
         JPasswordField passText = new JPasswordField(15);
-        add(passText, gbc);
+        passText.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        passText.setEchoChar('•');
+        passText.setBorder(null);
 
-        gbc.gridy++;
-        gbc.gridwidth = 1;
-        gbc.fill = GridBagConstraints.NONE;
-        JCheckBox rememberMe = new JCheckBox("Remember Me");
-        rememberMe.setBackground(new Color(209, 213, 219));
-        add(rememberMe, gbc);
+        ImageIcon closedEye = loadAndResizeIcon(EYE_CLOSED_ICON, 24, 24);
+        ImageIcon openEye = loadAndResizeIcon(EYE_OPEN_ICON, 24, 24);
 
-        gbc.gridy++;
-        gbc.gridwidth = 2;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        JButton loginButton = new JButton("LOG IN");
-        loginButton.setBackground(new Color(31, 41, 55));
-        loginButton.setForeground(Color.WHITE);
-        loginButton.setFocusPainted(false);
-        add(loginButton, gbc);
+        JLabel eyeLabel = new JLabel(closedEye);
+        eyeLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        eyeLabel.setPreferredSize(new Dimension(36, 36));
+        eyeLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
-        gbc.gridy++;
-        JLabel signUpLabel = new JLabel("Doesn't Have an Account?");
-        signUpLabel.setForeground(new Color(55, 65, 81));
-        add(signUpLabel, gbc);
+        JPanel passPanel = new JPanel(new BorderLayout());
+        passPanel.setBackground(Color.WHITE);
+        passPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(150, 150, 150), 2),
+            BorderFactory.createEmptyBorder(0, 10, 0, 10)
+        ));
+        passPanel.add(passText, BorderLayout.CENTER);
+        passPanel.add(eyeLabel, BorderLayout.EAST);
 
-        gbc.gridy++;
-        JLabel signUpLink = new JLabel("Sign Up Here");
-        signUpLink.setForeground(new Color(37, 99, 235));
-        signUpLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        // Focus effect
+        passText.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent e) {
+                passPanel.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(new Color(66, 133, 244), 2),
+                    BorderFactory.createEmptyBorder(0, 10, 0, 10)
+                ));
+            }
 
-        // Clickable sign-up label
-        signUpLink.addMouseListener(new MouseAdapter() {
-            @Override
-			public void mouseClicked(MouseEvent e) {
-
-
-
-            	JLabel loadingLabel = new JLabel("Loading...", SwingConstants.CENTER);
-            	loadingLabel.setFont(new Font("Arial", Font.BOLD, 18));
-            	parentFrame.getContentPane().removeAll();
-            	parentFrame.getContentPane().add(loadingLabel);
-            	parentFrame.revalidate();
-            	parentFrame.repaint();
-
-            	SwingWorker<Void, Void> worker = new SwingWorker<>() {
-            	    @Override
-            	    protected Void doInBackground() throws Exception {
-            	        // Simulate loading time (optional)
-            	        Thread.sleep(1000); // remove this if not needed
-
-            	        return null;
-            	    }
-
-            	    @Override
-            	    protected void done() {
-            	    	parentFrame.getContentPane().removeAll();
-            	    	parentFrame.getContentPane().add(  new SignUp());
-            	    	parentFrame.revalidate();
-            	    	parentFrame.repaint();
-            	    }
-
-
-            	};
-            	worker.execute();  // Start the worker
+            public void focusLost(java.awt.event.FocusEvent e) {
+                passPanel.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(new Color(150, 150, 150), 2),
+                    BorderFactory.createEmptyBorder(0, 10, 0, 10)
+                ));
             }
         });
 
-        add(signUpLink, gbc);
+        // Toggle password visibility
+        eyeLabel.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                passwordVisible = !passwordVisible;
+                passText.setEchoChar(passwordVisible ? (char) 0 : '•');
+                eyeLabel.setIcon(passwordVisible ? openEye : closedEye);
+            }
+        });
 
+        innerGbc.gridy = 3;
+        innerGbc.insets = new Insets(0, 15, 15, 15);
+        loginPanel.add(passPanel, innerGbc);
+
+        // Login button
+        JButton loginButton = new JButton("LOG IN");
+        styleButton(loginButton);
+        innerGbc.gridy = 4;
+        innerGbc.insets = new Insets(10, 15, 15, 15);
+        loginPanel.add(loginButton, innerGbc);
+
+        // Message label
+        JLabel messageLabel = new JLabel(" ");
+        messageLabel.setFont(new Font("Segoe UI", Font.ITALIC, 14));
+        messageLabel.setForeground(PRIMARY_DARK);
+        innerGbc.gridy = 5;
+        innerGbc.insets = new Insets(0, 15, 15, 15);
+        loginPanel.add(messageLabel, innerGbc);
+
+        // Back button
+        JButton backButton = new JButton("Back");
+        styleButton(backButton);
+        innerGbc.gridy = 6;
+        innerGbc.insets = new Insets(0, 15, 20, 15);
+        loginPanel.add(backButton, innerGbc);
+
+        backButton.addActionListener(e -> {
+            System.out.println("Back button pressed");
+     
+             parentFrame.getContentPane().remove(this);
+             parentFrame.getContentPane().add(Welcome.WelcomePanel );
+             parentFrame.revalidate();
+             parentFrame.repaint();
+        });
+
+        // Add loginPanel to main layout
+        gbc.gridy = 2;
+        gbc.insets = new Insets(0, 0, 20, 0);
+        gbc.fill = GridBagConstraints.BOTH;
+        add(loginPanel, gbc);
+
+
+
+        loginButton.addActionListener(e -> {
+            String user = userText.getText().trim();
+            String pass = new String(passText.getPassword());
+
+            if ("admin".equals(user) && "admin".equals(pass)) {
+                messageLabel.setForeground(new Color(46, 125, 50));
+                messageLabel.setText("Login successful! Welcome.");
+                
+                
+                parentFrame.getContentPane().remove(this);
+                parentFrame.getContentPane().add(   new AdminDashboard());
+                parentFrame.revalidate();
+                parentFrame.repaint();
+                
+            } else {
+                messageLabel.setForeground(new Color(192, 57, 43));
+                messageLabel.setText("Invalid username or password.");
+                passText.setText("");
+            }
+        });
     }
 
+    private JTextField createStyledTextField() {
+        JTextField field = new JTextField(15);
+        field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        field.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(150, 150, 150), 2),
+            BorderFactory.createEmptyBorder(8, 10, 8, 10)
+        ));
+
+        field.addFocusListener(new FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent e) {
+                field.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(new Color(66, 133, 244), 2),
+                    BorderFactory.createEmptyBorder(8, 10, 8, 10)
+                ));
+            }
+
+            public void focusLost(FocusEvent e) {
+                field.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(new Color(150, 150, 150), 2),
+                    BorderFactory.createEmptyBorder(8, 10, 8, 10)
+                ));
+            }
+        });
+
+        return field;
+    }
+
+
+    private JPasswordField createStyledPasswordField(int width) {
+        JPasswordField field = new JPasswordField(15);
+        field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        field.setEchoChar('•');
+        field.setPreferredSize(new Dimension(width, 40));
+        field.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(150, 150, 150), 2),
+                BorderFactory.createEmptyBorder(8, 10, 8, 10)
+        ));
+
+        field.addFocusListener(new FocusAdapter() {
+            public void focusGained(FocusEvent e) {
+                field.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(new Color(66, 133, 244), 2),
+                        BorderFactory.createEmptyBorder(8, 10, 8, 10)
+                ));
+            }
+
+            public void focusLost(FocusEvent e) {
+                field.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(new Color(150, 150, 150), 2),
+                        BorderFactory.createEmptyBorder(8, 10, 8, 10)
+                ));
+            }
+        });
+
+        return field;
+    }
+
+    private void styleButton(JButton button) {
+        button.setBackground(PRIMARY_DARK);
+        button.setForeground(PRIMARY_LIGHT);
+        button.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        button.setFocusPainted(false);
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        button.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        button.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent evt) {
+                button.setBackground(new Color(28, 66, 107));
+            }
+
+            public void mouseExited(MouseEvent evt) {
+                button.setBackground(PRIMARY_DARK);
+            }
+        });
+    }
+
+    private ImageIcon loadAndResizeIcon(String path, int width, int height) {
+        java.net.URL imgURL = getClass().getResource(path);
+        if (imgURL == null) {
+            System.err.println("Icon not found: " + path);
+            return null;
+        }
+        ImageIcon icon = new ImageIcon(imgURL);
+        Image img = icon.getImage();
+        Image resizedImg = img.getScaledInstance(width, height, Image.SCALE_SMOOTH);
+        return new ImageIcon(resizedImg);
+    }
 
 
 }

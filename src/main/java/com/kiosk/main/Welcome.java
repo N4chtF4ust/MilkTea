@@ -25,8 +25,10 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.WindowConstants;
+
 
 import com.kiosk.Model.AddOns;
 import com.kiosk.Model.Product;
@@ -38,7 +40,7 @@ import com.kiosk.loading.LoadingRotate;
 
 public class Welcome {
     public static JFrame WelcomeFrame= new JFrame("Milkteassai");
-    private JPanel WelcomePanel;
+    public static JPanel WelcomePanel;
     private JLabel WelcomeLabel;
     private JComboBox<String> WelcomeComboBox;
     private JButton WelcomeDoneButton;
@@ -65,6 +67,7 @@ public class Welcome {
         WelcomeFrame.setExtendedState(Frame.MAXIMIZED_BOTH);
         //WelcomeFrame.setUndecorated(true); // optional: removes borders and title bar
         WelcomeFrame.setMinimumSize(new Dimension(900, 600));
+        
         WelcomeFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         WelcomeFrame.setLocationRelativeTo(null);
 
@@ -129,7 +132,7 @@ public class Welcome {
                         return new ClientSideCart();
                     } else if ("Admin".equals(selectedOption)) {
                         //return new Login(WelcomeFrame);
-                    	return new AdminDashboard();
+                    	return new Login(WelcomeFrame);
                     }
                     return new JPanel(); // fallback
                 }
@@ -221,9 +224,14 @@ public class Welcome {
     }
 
     public static void main(String[] args) {
+    	
+    	
+        SwingUtilities.invokeLater(() -> {
+            new Welcome();
+
+        });
 
 
-        new Welcome();
 
         // Keep the main thread alive indefinitely
         try {
