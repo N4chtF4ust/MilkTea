@@ -2,7 +2,6 @@ package com.kiosk.admin;
 
 import javax.swing.*;
 import java.awt.*;
-import java.net.URL;
 
 public class AdminSettings extends JPanel {
 
@@ -10,14 +9,13 @@ public class AdminSettings extends JPanel {
     private JPasswordField passwordField;
     private JTextField businessNameField;
 
+    // Constructor builds the UI
     public AdminSettings() {
         setLayout(new BorderLayout());
-
-        JPanel sidebar = createSidebar();
-        add(sidebar, BorderLayout.WEST);
+        setBackground(new Color(217, 217, 217));
 
         JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.setBackground(new Color(217, 217, 217)); // #D9D9D9
+        mainPanel.setBackground(new Color(217, 217, 217));
 
         // Top Bar
         JPanel topPanel = new JPanel(new BorderLayout());
@@ -37,8 +35,7 @@ public class AdminSettings extends JPanel {
         mainPanel.add(topPanel, BorderLayout.NORTH);
 
         // Settings Card Panel
-        JPanel settingsCard = new JPanel();
-        settingsCard.setLayout(new GridBagLayout());
+        JPanel settingsCard = new JPanel(new GridBagLayout());
         settingsCard.setBackground(Color.WHITE);
         settingsCard.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(200, 200, 220), 1),
@@ -49,7 +46,7 @@ public class AdminSettings extends JPanel {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(10, 10, 10, 10);
 
-        //username
+        // Username
         gbc.gridx = 0;
         gbc.gridy = 0;
         settingsCard.add(new JLabel("Username:"), gbc);
@@ -65,7 +62,7 @@ public class AdminSettings extends JPanel {
         changeUsernameBtn.setForeground(Color.WHITE);
         settingsCard.add(changeUsernameBtn, gbc);
 
-        //password
+        // Password
         gbc.gridx = 0;
         gbc.gridy = 1;
         settingsCard.add(new JLabel("Password:"), gbc);
@@ -81,7 +78,7 @@ public class AdminSettings extends JPanel {
         changePasswordBtn.setForeground(Color.WHITE);
         settingsCard.add(changePasswordBtn, gbc);
 
-        //business name
+        // Business Name
         gbc.gridx = 0;
         gbc.gridy = 2;
         settingsCard.add(new JLabel("Business Name:"), gbc);
@@ -92,12 +89,9 @@ public class AdminSettings extends JPanel {
         settingsCard.add(businessNameField, gbc);
 
         gbc.gridx = 2;
-        JButton businessNameBtn;
-        if (businessNameField.getText().isEmpty()) {
-            businessNameBtn = new JButton("Add Business Name");
-        } else {
-            businessNameBtn = new JButton("Change Business Name");
-        }
+        JButton businessNameBtn = new JButton(
+            businessNameField.getText().isEmpty() ? "Add Business Name" : "Change Business Name"
+        );
         businessNameBtn.setBackground(new Color(18, 52, 88));
         businessNameBtn.setForeground(Color.WHITE);
         settingsCard.add(businessNameBtn, gbc);
@@ -110,27 +104,22 @@ public class AdminSettings extends JPanel {
         saveButton.setForeground(Color.WHITE);
         settingsCard.add(saveButton, gbc);
 
-        // Action Listeners to enable editing on button click:
+        // Enable editing on button clicks
         changeUsernameBtn.addActionListener(e -> usernameField.setEditable(true));
         changePasswordBtn.addActionListener(e -> passwordField.setEditable(true));
         businessNameBtn.addActionListener(e -> businessNameField.setEditable(true));
 
-        // Save button action: just keep the panel, no popup
         saveButton.addActionListener(e -> {
-            // Optionally disable editing again after save:
             usernameField.setEditable(false);
             passwordField.setEditable(false);
             businessNameField.setEditable(false);
 
-            // Update businessNameBtn text if business name changed
-            if (businessNameField.getText().isEmpty()) {
-                businessNameBtn.setText("Add Business Name");
-            } else {
-                businessNameBtn.setText("Change Business Name");
-            }
+            businessNameBtn.setText(
+                businessNameField.getText().isEmpty() ? "Add Business Name" : "Change Business Name"
+            );
         });
 
-        // Padding Wrapper for Settings Card
+        // Padding wrapper
         JPanel paddedMainPanel = new JPanel(new BorderLayout());
         paddedMainPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 30, 30));
         paddedMainPanel.setBackground(new Color(217, 217, 217));
@@ -138,63 +127,17 @@ public class AdminSettings extends JPanel {
 
         mainPanel.add(paddedMainPanel, BorderLayout.CENTER);
 
-        // Wrap mainPanel in a centered wrapper with fixed size
+        // Center wrapper panel with fixed size
         JPanel wrapper = new JPanel(new GridBagLayout());
         wrapper.setBackground(new Color(217, 217, 217));
-        mainPanel.setPreferredSize(new Dimension(750, 520));  // Smaller main panel size
+        mainPanel.setPreferredSize(new Dimension(750, 520));
         wrapper.add(mainPanel);
 
         add(wrapper, BorderLayout.CENTER);
     }
 
-    private JPanel createSidebar() {
-        JPanel sidebar = new JPanel();
-        sidebar.setBackground(new Color(18, 52, 88)); // #123458
-        sidebar.setPreferredSize(new Dimension(200, 0));
-        sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
-
-        JLabel logo = new JLabel("milkteassai");
-        logo.setForeground(Color.WHITE);
-        logo.setFont(new Font("SansSerif", Font.BOLD, 25));
-        logo.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        sidebar.add(Box.createVerticalStrut(30));
-        sidebar.add(logo);
-        sidebar.add(Box.createVerticalStrut(30));
-
-        String[] navItems = {"Dashboard", "Products", "Orders", "Settings", "Logout"};
-        String[] iconPaths = {
-            "/icon/homeIcon.png",
-            "/icon/productsIcon.png",
-            "/icon/ordersIcon.png",
-            "/icon/settingsIcon.png",
-            "/icon/logoutIcon.png"
-        };
-
-        for (int i = 0; i < navItems.length; i++) {
-            ImageIcon icon = null;
-            URL iconURL = getClass().getResource(iconPaths[i]);
-
-            if (iconURL != null) {
-                icon = new ImageIcon(iconURL);
-                Image img = icon.getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH);
-                icon = new ImageIcon(img);
-            }
-
-            JButton btn = new JButton(navItems[i], icon);
-            btn.setMaximumSize(new Dimension(180, 40));
-            btn.setAlignmentX(Component.CENTER_ALIGNMENT);
-            btn.setFocusPainted(false);
-            btn.setForeground(Color.WHITE);
-            btn.setBackground(new Color(18, 52, 88));
-            btn.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
-            btn.setHorizontalAlignment(SwingConstants.LEFT);
-            btn.setIconTextGap(10);
-
-            sidebar.add(btn);
-        }
-
-        return sidebar;
+    // Static method to be called as ProductsPanelAddOns.AdminSettings()
+    public static JPanel AdminSettings() {
+        return new AdminSettings();
     }
-
 }
