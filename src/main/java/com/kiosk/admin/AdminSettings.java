@@ -9,18 +9,14 @@ public class AdminSettings extends JPanel {
     private JPasswordField passwordField;
     private JTextField businessNameField;
 
-    // Constructor builds the UI
     public AdminSettings() {
         setLayout(new BorderLayout());
         setBackground(new Color(217, 217, 217));
 
-        JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.setBackground(new Color(217, 217, 217));
-
-        // Top Bar
+        // ⬆️ Move topPanel to this panel's NORTH
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setOpaque(false);
-        topPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 10, 30));
+        topPanel.setBorder(BorderFactory.createEmptyBorder(40, 80, 10, 50));
 
         JLabel titleLabel = new JLabel("Settings");
         titleLabel.setFont(new Font("SansSerif", Font.PLAIN, 24));
@@ -32,7 +28,7 @@ public class AdminSettings extends JPanel {
         profileLabel.setForeground(new Color(18, 52, 88));
         topPanel.add(profileLabel, BorderLayout.EAST);
 
-        mainPanel.add(topPanel, BorderLayout.NORTH);
+        add(topPanel, BorderLayout.NORTH); // 👈 Add here like Dashboard
 
         // Settings Card Panel
         JPanel settingsCard = new JPanel(new GridBagLayout());
@@ -44,7 +40,7 @@ public class AdminSettings extends JPanel {
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.insets = new Insets(20, 10, 20, 10);
 
         // Username
         gbc.gridx = 0;
@@ -58,8 +54,7 @@ public class AdminSettings extends JPanel {
 
         gbc.gridx = 2;
         JButton changeUsernameBtn = new JButton("Change Username");
-        changeUsernameBtn.setBackground(new Color(18, 52, 88));
-        changeUsernameBtn.setForeground(Color.WHITE);
+        styleButton(changeUsernameBtn);
         settingsCard.add(changeUsernameBtn, gbc);
 
         // Password
@@ -74,8 +69,7 @@ public class AdminSettings extends JPanel {
 
         gbc.gridx = 2;
         JButton changePasswordBtn = new JButton("Change Password");
-        changePasswordBtn.setBackground(new Color(18, 52, 88));
-        changePasswordBtn.setForeground(Color.WHITE);
+        styleButton(changePasswordBtn);
         settingsCard.add(changePasswordBtn, gbc);
 
         // Business Name
@@ -90,53 +84,55 @@ public class AdminSettings extends JPanel {
 
         gbc.gridx = 2;
         JButton businessNameBtn = new JButton(
-            businessNameField.getText().isEmpty() ? "Add Business Name" : "Change Business Name"
+                businessNameField.getText().isEmpty() ? "Add Business Name" : "Change Business Name"
         );
-        businessNameBtn.setBackground(new Color(18, 52, 88));
-        businessNameBtn.setForeground(Color.WHITE);
+        styleButton(businessNameBtn);
         settingsCard.add(businessNameBtn, gbc);
 
         // Save Button
         gbc.gridx = 1;
         gbc.gridy = 3;
         JButton saveButton = new JButton("Save Changes");
-        saveButton.setBackground(new Color(18, 52, 88));
-        saveButton.setForeground(Color.WHITE);
+        styleButton(saveButton);
         settingsCard.add(saveButton, gbc);
 
-        // Enable editing on button clicks
+        // Listeners
         changeUsernameBtn.addActionListener(e -> usernameField.setEditable(true));
         changePasswordBtn.addActionListener(e -> passwordField.setEditable(true));
         businessNameBtn.addActionListener(e -> businessNameField.setEditable(true));
-
         saveButton.addActionListener(e -> {
             usernameField.setEditable(false);
             passwordField.setEditable(false);
             businessNameField.setEditable(false);
-
             businessNameBtn.setText(
-                businessNameField.getText().isEmpty() ? "Add Business Name" : "Change Business Name"
+                    businessNameField.getText().isEmpty() ? "Add Business Name" : "Change Business Name"
             );
         });
 
-        // Padding wrapper
-        JPanel paddedMainPanel = new JPanel(new BorderLayout());
-        paddedMainPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 30, 30));
-        paddedMainPanel.setBackground(new Color(217, 217, 217));
-        paddedMainPanel.add(settingsCard, BorderLayout.CENTER);
+        JPanel centerWrapper = new JPanel(new GridBagLayout());
+        centerWrapper.setBackground(new Color(217, 217, 217)); // Same as main bg
+        GridBagConstraints centerGbc = new GridBagConstraints();
+        centerGbc.gridx = 0;
+        centerGbc.gridy = 0;
+        centerWrapper.add(settingsCard, centerGbc);
 
-        mainPanel.add(paddedMainPanel, BorderLayout.CENTER);
+        // Optional: Adjust the size of settingsCard
+        settingsCard.setPreferredSize(new Dimension(900, 600)); // You can tweak these
 
-        // Center wrapper panel with fixed size
-        JPanel wrapper = new JPanel(new GridBagLayout());
-        wrapper.setBackground(new Color(217, 217, 217));
-        mainPanel.setPreferredSize(new Dimension(750, 520));
-        wrapper.add(mainPanel);
+        // Padding around the white card
+        JPanel paddedPanel = new JPanel(new BorderLayout());
+        paddedPanel.setBorder(BorderFactory.createEmptyBorder(20, 80, 60, 80)); 
+        paddedPanel.setOpaque(false); 
+        paddedPanel.add(centerWrapper, BorderLayout.CENTER);
 
-        add(wrapper, BorderLayout.CENTER);
+        add(paddedPanel, BorderLayout.CENTER);
     }
 
-    // Static method to be called as ProductsPanelAddOns.AdminSettings()
+    private void styleButton(JButton button) {
+        button.setBackground(new Color(18, 52, 88));
+        button.setForeground(Color.WHITE);
+    }
+
     public static JPanel AdminSettings() {
         return new AdminSettings();
     }
