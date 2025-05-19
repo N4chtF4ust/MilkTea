@@ -168,7 +168,7 @@ public class Welcome {
         WelcomeFrame.setVisible(true);
     }
 
-    private void showLoadingScreen() {
+    public static void showLoadingScreen() {
         JPanel loadingPanel = new LoadingRotate();
         loadingPanel.setPreferredSize(new Dimension(300, 150));
 

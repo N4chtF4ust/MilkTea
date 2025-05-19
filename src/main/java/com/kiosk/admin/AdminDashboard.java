@@ -7,6 +7,9 @@ import java.awt.event.ActionListener;
 import java.net.URL;
 import javax.swing.*;
 
+import com.kiosk.main.Login;
+import com.kiosk.main.Welcome;
+
 public class AdminDashboard extends JPanel {
     private JPanel mainPanel;
     private CardLayout cardLayout;
@@ -77,7 +80,10 @@ public class AdminDashboard extends JPanel {
             btn.addActionListener(e -> {
                 if (item.equals("Logout")) {
                     LogoutDialog.showLogoutDialog((JFrame) SwingUtilities.getWindowAncestor(this), () -> {
-                        System.exit(0);
+                    	Welcome.WelcomeFrame.getContentPane().remove(this);
+                    	Welcome.WelcomeFrame.add(new Login(Welcome.WelcomeFrame));
+                    	Welcome.WelcomeFrame.repaint();
+                    	Welcome.WelcomeFrame.revalidate();
                     });
                 } else {
                     cardLayout.show(mainPanel, item);
@@ -115,8 +121,8 @@ public class AdminDashboard extends JPanel {
         cardsPanel.setBorder(BorderFactory.createEmptyBorder(10, 100, 80, 100));
         cardsPanel.setOpaque(false);
 
-        String[] cardTitles = {"Total Sales", "Completed Orders", "Pending Orders", "Best Seller"};
-        String[] cardValues = {"PHP 50,000", "500", "9", "Wintermelon"};
+        String[] cardTitles = {"Total Sales", "Completed Orders", "Pending Orders", "Stocks"};
+        String[] cardValues = {"PHP 50,000", "500", "9", "7"};
 
         for (int i = 0; i < cardTitles.length; i++) {
             JPanel card = new JPanel();

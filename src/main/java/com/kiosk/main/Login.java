@@ -5,10 +5,17 @@ import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 import javax.swing.*;
 
+import org.mindrot.jbcrypt.BCrypt;
+
 import com.kiosk.admin.AdminDashboard;
+import com.kiosk.client.ClientSideCart;
+import com.kiosk.dbConnection.dbCon;
 
 public class Login extends JPanel {
     private final Color PRIMARY_DARK = new Color(18, 52, 88);    // Dark blue
@@ -97,14 +104,14 @@ public class Login extends JPanel {
 
         // Focus effect
         passText.addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusGained(java.awt.event.FocusEvent e) {
+            public void focusGained(FocusEvent e) {
                 passPanel.setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createLineBorder(new Color(66, 133, 244), 2),
                     BorderFactory.createEmptyBorder(0, 10, 0, 10)
                 ));
             }
 
-            public void focusLost(java.awt.event.FocusEvent e) {
+            public void focusLost(FocusEvent e) {
                 passPanel.setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createLineBorder(new Color(150, 150, 150), 2),
                     BorderFactory.createEmptyBorder(0, 10, 0, 10)
@@ -113,9 +120,9 @@ public class Login extends JPanel {
         });
 
         // Toggle password visibility
-        eyeLabel.addMouseListener(new java.awt.event.MouseAdapter() {
+        eyeLabel.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseClicked(java.awt.event.MouseEvent e) {
+            public void mouseClicked(MouseEvent e) {
                 passwordVisible = !passwordVisible;
                 passText.setEchoChar(passwordVisible ? (char) 0 : '•');
                 eyeLabel.setIcon(passwordVisible ? openEye : closedEye);
@@ -169,21 +176,68 @@ public class Login extends JPanel {
             String user = userText.getText().trim();
             String pass = new String(passText.getPassword());
 
-            if ("admin".equals(user) && "admin".equals(pass)) {
-                messageLabel.setForeground(new Color(46, 125, 50));
-                messageLabel.setText("Login successful! Welcome.");
+		            try (Connection conn = dbCon.getConnection()) {
+		                String sql = "SELECT password FROM users WHERE username = ?";
+		                try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+		                    stmt.setString(1, user);
+		                    try (ResultSet rs = stmt.executeQuery()) {
+		                        if (rs.next()) {
+		                            String storedHash = rs.getString("password");
+		                         
+		                            if (BCrypt.checkpw(pass, storedHash)) {
+		                                messageLabel.setForeground(new Color(46, 125, 50));
+		                             
+		                                
+		                                
+		                                Welcome.showLoadingScreen();
+		                                
+		                                SwingWorker<JPanel, Void> worker = new SwingWorker<>() {
+		                                    @Override
+		                                    protected JPanel doInBackground() throws Exception {
+		                                        // Perform any background tasks here (e.g., data loading)
+		                                        return new AdminDashboard(); // Return the new panel
+		                                    }
+
+		                                    @Override
+		                                    protected void done() {
+		                                        try {
+		                                            JPanel newPanel = get(); // Get the result from doInBackground()
+
+		                                            parentFrame.getContentPane().removeAll(); // Clear existing components
+		                                            parentFrame.getContentPane().add(newPanel); // Add the new panel
+		                                            parentFrame.revalidate();
+		                                            parentFrame.repaint();
+		                                        } catch (Exception ex) {
+		                                            ex.printStackTrace();
+		                                        }
+		                                    }
+		                                };
+		                                worker.execute();
+
                 
-                
-                parentFrame.getContentPane().remove(this);
-                parentFrame.getContentPane().add(   new AdminDashboard());
-                parentFrame.revalidate();
-                parentFrame.repaint();
-                
-            } else {
-                messageLabel.setForeground(new Color(192, 57, 43));
-                messageLabel.setText("Invalid username or password.");
-                passText.setText("");
+
+           
+                     
+                            } else {
+               
+                                messageLabel.setForeground(new Color(192, 57, 43));
+                                messageLabel.setText("Invalid username or password.");
+                                passText.setText("");
+                            }
+                        } else {
+                            messageLabel.setForeground(new Color(192, 57, 43));
+                            messageLabel.setText("Invalid username or password.");
+                            passText.setText("");
+                        }
+                    }
+                }
+            } catch (Exception ex) {
+                messageLabel.setForeground(Color.RED);
+                messageLabel.setText("Database error: " + ex.getMessage());
+                ex.printStackTrace();
             }
+
+
         });
     }
 
@@ -196,7 +250,7 @@ public class Login extends JPanel {
         ));
 
         field.addFocusListener(new FocusAdapter() {
-            public void focusGained(java.awt.event.FocusEvent e) {
+            public void focusGained(FocusEvent e) {
                 field.setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createLineBorder(new Color(66, 133, 244), 2),
                     BorderFactory.createEmptyBorder(8, 10, 8, 10)
