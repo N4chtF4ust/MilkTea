@@ -1,4 +1,3 @@
-
 package com.kiosk.admin;
 
 import java.awt.*;
@@ -25,9 +24,9 @@ public class AdminDashboard extends JPanel {
 
         mainPanel.add(createDashboardPanel(), "Dashboard");
         mainPanel.add(ProductsPanelFlavors.ProductsPanelFlavors(this), "Products");
-        mainPanel.add(ProductsPanelAddOns.ProductsPanelAddOns(this), "AddOns"); // Ensure this exists
+        mainPanel.add(ProductsPanelAddOns.ProductsPanelAddOns(this), "AddOns"); 
         mainPanel.add(createPlaceholderPanel("Orders Panel"), "Orders");
-        mainPanel.add(AdminSettings.AdminSettings(), "Settings");
+        mainPanel.add(new AdminSettings(), "Settings");
 
         add(mainPanel, BorderLayout.CENTER);
     }
