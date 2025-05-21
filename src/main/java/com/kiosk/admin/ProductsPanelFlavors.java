@@ -750,7 +750,7 @@ class ButtonRendererFlavors implements TableCellRenderer {
         button.setForeground(fg);
         button.setFocusable(false);
         button.setFont(new Font("SansSerif", Font.BOLD, 12));
-        button.setBorder(BorderFactory.createEmptyBorder(2, 10, 2, 10));
+     //   button.setBorder(BorderFactory.createEmptyBorder(2, 10, 2, 10));
         button.setOpaque(true);
         button.setBorderPainted(false);
     }

@@ -58,14 +58,7 @@ public class OrderPanel extends JPanel {
         titleLabel.setForeground(PRIMARY_COLOR);
         titlePanel.add(titleLabel);
 
-        JButton backBtn = new JButton("←");
-        backBtn.setForeground(WHITE_COLOR);
-        backBtn.setBackground(PRIMARY_COLOR);
-        backBtn.setFocusable(false);
-        backBtn.setName("backBtn");
-        titlePanel.add(backBtn);
 
-        backBtn.addActionListener(e -> adminDashboard.showPanel("Dashboard"));
 
         JLabel profileLabel = new JLabel("👤 Admin");
         profileLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
