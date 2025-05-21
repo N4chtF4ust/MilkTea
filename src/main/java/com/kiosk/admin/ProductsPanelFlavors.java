@@ -29,7 +29,7 @@ public class ProductsPanelFlavors extends JPanel {
 	
 	
 
-    public static final int PRODUCTS_PER_PAGE = 10;
+    public static final int PRODUCTS_PER_PAGE = 5;
     public static final int TOTAL_PRODUCTS = 20;
  
 
@@ -80,8 +80,8 @@ public class ProductsPanelFlavors extends JPanel {
                 int originalHeight = originalIcon.getIconHeight();
 
                 // Calculate new dimensions (20% of original)
-                int newWidth = (int)(originalWidth * 0.04);
-                int newHeight = (int)(originalHeight * 0.04);
+                int newWidth = (int)(originalWidth * 0.5);
+                int newHeight = (int)(originalHeight * 0.5);
 
                 // Resize image smoothly
                 Image scaledImage = originalIcon.getImage().getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
@@ -198,6 +198,8 @@ public class ProductsPanelFlavors extends JPanel {
         table.setFont(new Font("SansSerif", Font.PLAIN, 14));
         table.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 14));
         table.getTableHeader().setReorderingAllowed(false);
+        table.getTableHeader().setBackground(new Color(18, 52, 88));
+        table.getTableHeader().setForeground(Color.WHITE);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         // Center Renderer
@@ -339,8 +341,8 @@ public class ProductsPanelFlavors extends JPanel {
                         int originalWidth = originalIcon.getIconWidth();
                         int originalHeight = originalIcon.getIconHeight();
 
-                        int newWidth = (int) (originalWidth * 0.04);
-                        int newHeight = (int) (originalHeight * 0.04);
+                        int newWidth = (int) (originalWidth * 0.5 );
+                        int newHeight = (int) (originalHeight * 0.9);
 
                         Image scaledImage = originalIcon.getImage().getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
                         ImageIcon resizedIcon = new ImageIcon(scaledImage);
