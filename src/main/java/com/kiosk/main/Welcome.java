@@ -135,8 +135,9 @@ public class Welcome {
                     if ("Client".equals(selectedOption)) {
                         return new ClientSideCart();
                     } else if ("Admin".equals(selectedOption)) {
-                        //return new Login(WelcomeFrame);
-                    	return new Login(WelcomeFrame);
+                        return new Login(WelcomeFrame);
+                    } else if ("Dashboard".equals(selectedOption)) {
+                        return new DashBoard(WelcomeFrame);
                     }
                     return new JPanel(); // fallback
                 }
