@@ -25,7 +25,7 @@ public class AdminDashboard extends JPanel {
         mainPanel.add(createDashboardPanel(), "Dashboard");
         mainPanel.add(ProductsPanelFlavors.ProductsPanelFlavors(this), "Products");
         mainPanel.add(ProductsPanelAddOns.ProductsPanelAddOns(this), "AddOns"); 
-        mainPanel.add(createPlaceholderPanel("Orders Panel"), "Orders");
+        mainPanel.add(OrderPanel.OrderPanel(this), "Orders");
         mainPanel.add(new AdminSettings(), "Settings");
 
         add(mainPanel, BorderLayout.CENTER);

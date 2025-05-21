@@ -229,12 +229,12 @@ public class Welcome {
 
     public static void main(String[] args) {
     	
-       /* try {
+        try {
             UIManager.setLookAndFeel(new FlatLightLaf());
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-    	*/
+    	
     	
         SwingUtilities.invokeLater(() -> {
             new Welcome();

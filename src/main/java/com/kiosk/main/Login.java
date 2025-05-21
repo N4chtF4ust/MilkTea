@@ -31,7 +31,7 @@ public class Login extends JPanel {
         GridBagConstraints gbc = new GridBagConstraints();
 
         // Title Label
-        JLabel titleLabel = new JLabel("Anjo MilkTea");
+        JLabel titleLabel = new JLabel("Milkteassai");
         titleLabel.setFont(new Font("Arial Rounded MT Bold", Font.BOLD, 32));
         titleLabel.setForeground(PRIMARY_DARK);
         gbc.gridx = 0;
