@@ -14,7 +14,7 @@ public class SupabaseConfig {
     public static final String SUPABASE_API_KEY = dotenv.get("SUPABASE_API_KEY");
     public static final String BUCKET_NAME = dotenv.get("BUCKET_NAME");
 
-    private static final OkHttpClient client = new OkHttpClient();
+    public static final OkHttpClient client = new OkHttpClient();
 
     static {
         checkSupabaseConnection();

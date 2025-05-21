@@ -62,14 +62,14 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.plaf.basic.BasicComboBoxUI;
 
-import com.kiosk.Model.AddOns;
-import com.kiosk.Model.ClientOrders;
-import com.kiosk.Model.Product;
 import com.kiosk.cache_image.GetCachedImagePath;
 import com.kiosk.dbConnection.dbCon;
 import com.kiosk.icons.Icons;
 import com.kiosk.loading.LoadingRotate;
 import com.kiosk.main.Welcome;
+import com.kiosk.model.AddOns;
+import com.kiosk.model.ClientOrders;
+import com.kiosk.model.Product;
 
 public class ClientSideCart extends JPanel {
     private DefaultListModel<String> cartModel;
