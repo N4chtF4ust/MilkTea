@@ -98,7 +98,9 @@ public class ProductsPanelAddOns extends JPanel {
             JDialog dialog = new JDialog();
             dialog.setTitle("Add AddOn");
             dialog.setModal(true);
-            dialog.setSize(400, 250);
+            dialog.setSize(400, 300);
+            dialog.setResizable(false);
+
             dialog.setLocationRelativeTo(null);
             dialog.getContentPane().setBackground(BACKGROUND_COLOR);
             
@@ -136,7 +138,8 @@ public class ProductsPanelAddOns extends JPanel {
             form.add(statusLabel);
             form.add(statusDropdown);
             
-            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+            JPanel buttonPanel = new JPanel();
+
             buttonPanel.setBackground(BACKGROUND_COLOR);
             
             JButton saveButton = new JButton("Save");
@@ -354,7 +357,7 @@ public class ProductsPanelAddOns extends JPanel {
         private JButton editBtn, deleteBtn;
         
         public ButtonRenderer() {
-            setLayout(new FlowLayout(FlowLayout.CENTER, 5, 0));
+            setLayout(new FlowLayout());
             setBackground(WHITE_COLOR);
             
             editBtn = new JButton("Edit");
@@ -393,7 +396,7 @@ public class ProductsPanelAddOns extends JPanel {
         public ButtonEditor(JCheckBox checkBox, AdminDashboard dashboard) {
             super(checkBox);
             this.dashboard = dashboard;
-            panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
+            panel = new JPanel(new FlowLayout());
             panel.setBackground(WHITE_COLOR);
             
             editBtn = new JButton("Edit");
@@ -470,7 +473,9 @@ public class ProductsPanelAddOns extends JPanel {
             JDialog dialog = new JDialog();
             dialog.setTitle("Edit AddOn");
             dialog.setModal(true);
-            dialog.setSize(400, 250);
+            dialog.setSize(400, 350);
+            dialog.setResizable(false);
+
             dialog.setLocationRelativeTo(null);
             dialog.getContentPane().setBackground(BACKGROUND_COLOR);
             
@@ -516,7 +521,9 @@ public class ProductsPanelAddOns extends JPanel {
             form.add(statusLabel);
             form.add(statusDropdown);
             
-            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+            JPanel buttonPanel = new JPanel();
+            buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
+
             buttonPanel.setBackground(BACKGROUND_COLOR);
             
             JButton saveButton = new JButton("Update");
@@ -524,6 +531,7 @@ public class ProductsPanelAddOns extends JPanel {
             saveButton.setForeground(WHITE_COLOR);
             saveButton.setFont(new Font("SansSerif", Font.BOLD, 14));
             saveButton.setFocusPainted(false);
+   
             
             JButton cancelButton = new JButton("Cancel");
             cancelButton.setBackground(WHITE_COLOR);
@@ -532,6 +540,7 @@ public class ProductsPanelAddOns extends JPanel {
             cancelButton.setFocusPainted(false);
             
             buttonPanel.add(saveButton);
+            buttonPanel.add(Box.createHorizontalStrut(10)); // 10px gap
             buttonPanel.add(cancelButton);
             
             form.add(Box.createHorizontalStrut(5));

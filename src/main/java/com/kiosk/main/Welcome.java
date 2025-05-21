@@ -1,6 +1,7 @@
 package com.kiosk.main;
 
 import java.awt.BorderLayout;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
@@ -27,16 +28,19 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
+import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 
-
-import com.kiosk.Model.AddOns;
-import com.kiosk.Model.Product;
 import com.kiosk.admin.AdminDashboard;
 import com.kiosk.cache_image.GetCachedImagePath;
 import com.kiosk.client.ClientSideCart;
 import com.kiosk.dbConnection.dbCon;
 import com.kiosk.loading.LoadingRotate;
+import com.kiosk.model.AddOns;
+import com.kiosk.model.Product;
+
+
+import com.formdev.flatlaf.FlatLightLaf;
 
 public class Welcome {
     public static JFrame WelcomeFrame= new JFrame("Milkteassai");
@@ -66,7 +70,7 @@ public class Welcome {
 
         WelcomeFrame.setExtendedState(Frame.MAXIMIZED_BOTH);
         //WelcomeFrame.setUndecorated(true); // optional: removes borders and title bar
-        WelcomeFrame.setMinimumSize(new Dimension(900, 600));
+        WelcomeFrame.setMinimumSize(new Dimension(1100, 700));
         
         WelcomeFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         WelcomeFrame.setLocationRelativeTo(null);
@@ -225,6 +229,12 @@ public class Welcome {
 
     public static void main(String[] args) {
     	
+       /* try {
+            UIManager.setLookAndFeel(new FlatLightLaf());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    	*/
     	
         SwingUtilities.invokeLater(() -> {
             new Welcome();
