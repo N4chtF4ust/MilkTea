@@ -3,6 +3,7 @@ package com.kiosk.main;
 import com.kiosk.dbConnection.dbCon;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
@@ -55,9 +56,46 @@ public class DashBoard extends JPanel {
         mainContainerPanel.setBackground(Color.WHITE);
         mainContainerPanel.setBorder(BorderFactory.createLineBorder(new Color(18, 52, 88), 3, true));
 
+        // Custom cell renderer for bold, colored text
+        DefaultTableCellRenderer boldRenderer = new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value,
+                    boolean isSelected, boolean hasFocus, int row, int column) {
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                setFont(getFont().deriveFont(Font.BOLD));
+                setForeground(new Color(18, 52, 88));
+                setHorizontalAlignment(SwingConstants.CENTER);
+                return c;
+            }
+        };
+
+        // Custom header renderer for bold, black text
+        DefaultTableCellRenderer headerRenderer = new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value,
+                    boolean isSelected, boolean hasFocus, int row, int column) {
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                setFont(getFont().deriveFont(Font.BOLD));
+                setForeground(Color.BLACK);
+                setHorizontalAlignment(SwingConstants.CENTER);
+                return c;
+            }
+        };
+
         // Left Panel (Pending Orders)
         pendingTable = new JTable(new DefaultTableModel(new Object[]{"Order ID", "Date", "Total"}, 0));
-        pendingTable.setRowHeight(40); // double the usual height
+        pendingTable.setRowHeight(35); // set to 35 pixels
+        
+        // Apply custom renderer to all columns
+        for (int i = 0; i < pendingTable.getColumnCount(); i++) {
+            pendingTable.getColumnModel().getColumn(i).setCellRenderer(boldRenderer);
+        }
+        
+        // Apply custom header renderer
+        for (int i = 0; i < pendingTable.getColumnCount(); i++) {
+            pendingTable.getColumnModel().getColumn(i).setHeaderRenderer(headerRenderer);
+        }
+        
         JScrollPane pendingScrollPane = new JScrollPane(pendingTable,
                 JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
                 JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
@@ -67,7 +105,18 @@ public class DashBoard extends JPanel {
 
         // Right Panel (Preparing Orders)
         toReceiveTable = new JTable(new DefaultTableModel(new Object[]{"Order ID", "Date", "Total"}, 0));
-        toReceiveTable.setRowHeight(40);
+        toReceiveTable.setRowHeight(35);
+        
+        // Apply custom renderer to all columns
+        for (int i = 0; i < toReceiveTable.getColumnCount(); i++) {
+            toReceiveTable.getColumnModel().getColumn(i).setCellRenderer(boldRenderer);
+        }
+        
+        // Apply custom header renderer
+        for (int i = 0; i < toReceiveTable.getColumnCount(); i++) {
+            toReceiveTable.getColumnModel().getColumn(i).setHeaderRenderer(headerRenderer);
+        }
+        
         JScrollPane toReceiveScrollPane = new JScrollPane(toReceiveTable,
                 JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
                 JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
@@ -81,27 +130,34 @@ public class DashBoard extends JPanel {
         mainWrapperPanel.add(mainContainerPanel, BorderLayout.CENTER);
         add(mainWrapperPanel, BorderLayout.CENTER);
 
-        // Setup polling timer (disabled by default)
+        // Setup polling timer (starts immediately)
         pollTimer = new Timer(5000, e -> {
             loadOrdersByStatus("pending", pendingTable);
             loadOrdersByStatus("preparing", toReceiveTable);
         });
         pollTimer.setRepeats(true);
-
-        // ComponentListener to start/stop polling when this panel is shown/hidden
-        this.addComponentListener(new ComponentAdapter() {
-            @Override
-            public void componentShown(ComponentEvent e) {
-                pollTimer.start();
-            }
-
-            @Override
-            public void componentHidden(ComponentEvent e) {
-                pollTimer.stop();
-            }
-        });
+        pollTimer.start(); // Start polling immediately
 
         // Initial load
+        loadOrdersByStatus("pending", pendingTable);
+        loadOrdersByStatus("preparing", toReceiveTable);
+    }
+
+    // Public methods to control polling
+    public void startPolling() {
+        if (pollTimer != null && !pollTimer.isRunning()) {
+            pollTimer.start();
+        }
+    }
+
+    public void stopPolling() {
+        if (pollTimer != null && pollTimer.isRunning()) {
+            pollTimer.stop();
+        }
+    }
+
+    // Method to refresh data manually
+    public void refreshData() {
         loadOrdersByStatus("pending", pendingTable);
         loadOrdersByStatus("preparing", toReceiveTable);
     }
@@ -125,8 +181,6 @@ public class DashBoard extends JPanel {
 
                 model.addRow(new Object[]{id, date, total});
             }
-
-            table.setRowHeight(table.getRowHeight() * 2);
 
         } catch (SQLException e) {
             e.printStackTrace();
