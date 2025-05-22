@@ -239,7 +239,7 @@ public class AdminDashboard extends JPanel {
     }
 
     private int getPendingOrders() {
-        String query = "SELECT COUNT(*) FROM orders WHERE status = 'PROCESSING'";
+        String query = "SELECT COUNT(*) FROM orders WHERE status = 'PENDING'";
         try (Connection conn = dbCon.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
