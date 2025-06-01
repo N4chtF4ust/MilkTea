@@ -17,11 +17,6 @@ A standalone Java-based Milk Tea Shop Kiosk system designed for small businesses
 - **Mysql** 
 - **Maven**
 
-## 📷 Screenshots
-
-<!-- Include images of your kiosk UI here -->
-![Milk Tea Kiosk Main Screen](Screenshot/ChooseUser.png)
-![Order Screen](Screenshot/Client.png)
 
 ## 🚀 How to Run
 
